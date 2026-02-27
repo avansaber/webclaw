@@ -26,19 +26,21 @@ err() { echo "{\"status\":\"error\",\"message\":\"$1\"}"; exit 1; }
 
 # Source repo — HTTPS clone (no SSH key required)
 REPO_URL="https://github.com/avansaber/webclaw.git"
+RELEASE_TAG="v1.0.10"
 
 # ── Phase 0: Clone full source if not present ────────────────────────────
 # The publish package is a lightweight metadata package (SKILL.md + scripts).
-# The full source (api/, web/, templates/) is fetched from GitHub on first install.
+# The full source (api/, web/, templates/) is fetched from GitHub at a pinned
+# release tag. This ensures reproducible installs — no arbitrary HEAD code.
 
 if [ ! -d "$INSTALL_DIR/api" ] || [ ! -d "$INSTALL_DIR/web" ]; then
-    log "Source directories missing. Cloning full source from $REPO_URL ..."
+    log "Source directories missing. Cloning $REPO_URL @ $RELEASE_TAG ..."
     TEMP_CLONE=$(mktemp -d)
-    git clone --depth 1 "$REPO_URL" "$TEMP_CLONE" || err "Failed to clone webclaw repo from $REPO_URL"
+    git clone --depth 1 --branch "$RELEASE_TAG" "$REPO_URL" "$TEMP_CLONE" || err "Failed to clone webclaw repo from $REPO_URL (tag: $RELEASE_TAG)"
     # Copy source into install dir, preserving any existing files (SKILL.md, scripts/)
     rsync -a --ignore-existing "$TEMP_CLONE/" "$INSTALL_DIR/" --exclude='.git/'
     rm -rf "$TEMP_CLONE"
-    log "Source cloned into $INSTALL_DIR"
+    log "Source cloned into $INSTALL_DIR (tag: $RELEASE_TAG)"
 fi
 
 # ── Phase 1: Backend (Python venv + dependencies) ──────────────────────────
