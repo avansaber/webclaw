@@ -55,12 +55,16 @@ Activate this skill when the user mentions: web dashboard, web UI, web interface
 
 ### Setup (First Use Only)
 
-After installation, the bot reports the server URL. The user must:
-1. Open the URL in a browser
-2. Go to /setup to create the first admin account
+**IMPORTANT:** After installation, tell the user to open the setup page in their browser:
+
+> Open **https://YOUR_SERVER/setup** to create your admin account.
+
+Steps:
+1. Open the URL shown in the install output (e.g., `https://1.2.3.4/setup`)
+2. Create the first admin account (email + password)
 3. Log in — all installed skills appear in the sidebar
 
-To enable HTTPS: say "Set up SSL for yourdomain.com"
+To enable HTTPS with a custom domain: say "Set up SSL for yourdomain.com"
 
 ## Quick Start (Tier 1)
 

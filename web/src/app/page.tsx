@@ -313,7 +313,7 @@ Layer 0  YAML Body             Parse body: arrays from frontmatter [static]`}
               <Zap className="h-5 w-5 text-primary" />
               <span className="font-semibold">Webclaw</span>
               <span className="text-sm text-muted-foreground">
-                by OpenClaw
+                by AvanSaber — built for OpenClaw
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

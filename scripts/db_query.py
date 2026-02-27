@@ -456,4 +456,9 @@ if __name__ == "__main__":
     parser.add_argument("--role", default=None)
 
     args, _unknown = parser.parse_known_args()
-    ACTIONS[args.action](args)
+    try:
+        ACTIONS[args.action](args)
+    except SystemExit:
+        raise
+    except Exception as e:
+        _fail(f"{type(e).__name__}: {e}\n\nIf webclaw is not set up yet, run: bash scripts/install.sh\nThen open https://YOUR_SERVER/setup to create your admin account.")
