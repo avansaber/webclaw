@@ -1,0 +1,15 @@
+[Unit]
+Description=Webclaw Next.js Frontend
+After=network.target
+
+[Service]
+Type=simple
+User={{USER}}
+WorkingDirectory={{INSTALL_DIR}}/web
+ExecStart=/usr/bin/node {{INSTALL_DIR}}/web/node_modules/.bin/next start -p 3000
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

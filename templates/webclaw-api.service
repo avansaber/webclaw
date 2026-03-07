@@ -1,0 +1,17 @@
+[Unit]
+Description=Webclaw FastAPI Gateway
+After=network.target
+
+[Service]
+Type=simple
+User={{USER}}
+WorkingDirectory={{INSTALL_DIR}}/api
+ExecStart={{INSTALL_DIR}}/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8001
+Restart=on-failure
+RestartSec=5
+Environment=WEBCLAW_ENV=production
+Environment=WEBCLAW_HTTPS=1
+Environment=PYTHONPATH=/home/{{USER}}/.openclaw/erpclaw/lib
+
+[Install]
+WantedBy=multi-user.target
