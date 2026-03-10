@@ -56,6 +56,8 @@ import {
   ArrowLeft,
   Circle,
   Terminal,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -73,6 +75,7 @@ import { useCurrentProfile } from "@/lib/adaptive";
 import { useUIConfig } from "@/lib/ui-config";
 import { getListActions } from "@/lib/ui-yaml-to-form";
 import { slugFromListAction, getEntityListUrl } from "@/lib/entity-routing";
+import { getVisibleDomains, getShowAllDomains, setShowAllDomains } from "@/lib/domain-presets";
 
 // Category-based icons (extensible)
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -265,7 +268,10 @@ function SkillEntityTree({
   skillDisplayLabel: string;
 }) {
   const { config: uiConfig, loading } = useUIConfig(skillName);
+  const { data: profile } = useCurrentProfile();
   const pathname = usePathname();
+  const [showAll, setShowAll] = useState(() => getShowAllDomains());
+
   // Derive active entity slug from pathname: /skills/propertyclaw/properties → "properties"
   const activeSlug = (() => {
     const match = pathname.match(/^\/skills\/[^/]+\/([^/]+)/);
@@ -276,6 +282,28 @@ function SkillEntityTree({
     if (!uiConfig) return [];
     return getListActions(uiConfig);
   }, [uiConfig]);
+
+  // AURA Layer 2: filter domains by profile preset
+  const visibleDomainKeys = useMemo(() => {
+    if (showAll) return null; // null = show all
+    return getVisibleDomains(profile?.profile_key, skillName);
+  }, [profile?.profile_key, skillName, showAll]);
+
+  const filteredDomains = useMemo(() => {
+    if (!uiConfig?.domains) return [];
+    if (!visibleDomainKeys) return uiConfig.domains;
+    const allowedSet = new Set(visibleDomainKeys);
+    return uiConfig.domains.filter((d) => allowedSet.has(d.key));
+  }, [uiConfig?.domains, visibleDomainKeys]);
+
+  const isFiltered = visibleDomainKeys !== null;
+  const hiddenCount = (uiConfig?.domains?.length ?? 0) - filteredDomains.length;
+
+  function toggleShowAll() {
+    const next = !showAll;
+    setShowAll(next);
+    setShowAllDomains(next);
+  }
 
   if (loading) {
     return (
@@ -290,7 +318,7 @@ function SkillEntityTree({
   }
 
   // Group by domain if domains are configured
-  const hasDomains = uiConfig?.domains && uiConfig.domains.length > 0;
+  const hasDomains = filteredDomains.length > 0;
 
   // Dashboard link at top (active when on skill root with no entity slug)
   const isDashboard = !activeSlug;
@@ -312,7 +340,7 @@ function SkillEntityTree({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {uiConfig!.domains!.map((domain) => {
+        {filteredDomains.map((domain) => {
           const domainActions = entityListActions.filter(
             (e) => e.domain === domain.key
           );
@@ -345,8 +373,9 @@ function SkillEntityTree({
         })}
         {/* Ungrouped entities (not assigned to any domain) */}
         {(() => {
+          const allDomains = uiConfig?.domains ?? [];
           const domainEntities = new Set(
-            uiConfig!.domains!.flatMap((d) => d.entities)
+            allDomains.flatMap((d) => d.entities)
           );
           const ungrouped = entityListActions.filter(
             (e) => !domainEntities.has(e.entity)
@@ -378,6 +407,30 @@ function SkillEntityTree({
             </SidebarGroup>
           );
         })()}
+        {/* Show all / Show less toggle (only when filtering is active) */}
+        {(isFiltered || showAll) && hiddenCount > 0 && (
+          <SidebarGroup className="py-1">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={toggleShowAll} className="text-muted-foreground text-xs">
+                    {showAll ? (
+                      <>
+                        <EyeOff className="h-3.5 w-3.5" />
+                        <span>Show less</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>Show all ({hiddenCount} more)</span>
+                      </>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         {/* Action Runner link */}
         <SidebarGroup className="py-1">
           <SidebarGroupContent>
