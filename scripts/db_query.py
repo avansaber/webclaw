@@ -43,12 +43,74 @@ NGINX_CONF = "/etc/nginx/sites-enabled/webclaw"
 
 
 def _get_conn():
-    if not os.path.exists(DB_PATH):
-        _fail("Database not found. Run install.sh first.")
+    is_new = not os.path.exists(DB_PATH)
+    if is_new:
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA busy_timeout=5000")
+    if is_new:
+        # Auto-initialize webclaw tables on first use
+        init_db_path = os.path.join(
+            os.path.dirname(INSTALL_DIR), "webclaw", "api", "init_webclaw_db.py"
+        )
+        if not os.path.exists(init_db_path):
+            # Fallback: init_webclaw_db.py next to this script's parent api/ dir
+            init_db_path = os.path.join(INSTALL_DIR, "api", "init_webclaw_db.py")
+        if os.path.exists(init_db_path):
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("init_webclaw_db", init_db_path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            mod.init_tables(conn)
+        else:
+            # Inline minimal schema if init module not found
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS webclaw_user (
+                    id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE,
+                    email TEXT UNIQUE, full_name TEXT, password_hash TEXT,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+                    locked_until TEXT, last_login TEXT,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    updated_at TEXT DEFAULT (datetime('now'))
+                );
+                CREATE TABLE IF NOT EXISTS webclaw_role (
+                    id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE,
+                    description TEXT, is_system INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT DEFAULT (datetime('now'))
+                );
+                CREATE TABLE IF NOT EXISTS webclaw_user_role (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES webclaw_user(id),
+                    role_id TEXT NOT NULL REFERENCES webclaw_role(id),
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(user_id, role_id)
+                );
+                CREATE TABLE IF NOT EXISTS webclaw_role_permission (
+                    id TEXT PRIMARY KEY,
+                    role_id TEXT NOT NULL REFERENCES webclaw_role(id),
+                    skill TEXT NOT NULL, action_pattern TEXT NOT NULL,
+                    allowed INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(role_id, skill, action_pattern)
+                );
+                CREATE TABLE IF NOT EXISTS webclaw_session (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES webclaw_user(id),
+                    refresh_token_hash TEXT NOT NULL UNIQUE,
+                    expires_at TEXT NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    last_active_at TEXT DEFAULT (datetime('now')),
+                    ip_address TEXT, user_agent TEXT
+                );
+                CREATE TABLE IF NOT EXISTS webclaw_config (
+                    key TEXT PRIMARY KEY, value TEXT NOT NULL,
+                    updated_at TEXT DEFAULT (datetime('now'))
+                );
+            """)
     return conn
 
 

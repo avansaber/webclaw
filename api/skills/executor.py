@@ -5,11 +5,33 @@ import os
 import re
 
 SKILLS_DIR = os.path.expanduser("~/clawd/skills")
+MODULES_DIR = os.path.expanduser("~/.openclaw/erpclaw/modules")
+
+# Skill names must be lowercase alphanumeric with hyphens only (path traversal defense)
+_SKILL_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
+def find_skill_dir(skill: str) -> str | None:
+    """Resolve the root directory for a skill (top-level or erpclaw module)."""
+    if not _SKILL_NAME_RE.match(skill):
+        return None
+    # Primary: ~/clawd/skills/{skill}/
+    primary = os.path.join(SKILLS_DIR, skill)
+    if os.path.isdir(primary):
+        return primary
+    # Fallback: ~/.openclaw/erpclaw/modules/{skill}/
+    module = os.path.join(MODULES_DIR, skill)
+    if os.path.isdir(module):
+        return module
+    return None
 
 
 def find_skill_script(skill: str) -> str | None:
     """Resolve the db_query.py path for a skill."""
-    script = os.path.join(SKILLS_DIR, skill, "scripts", "db_query.py")
+    skill_dir = find_skill_dir(skill)
+    if not skill_dir:
+        return None
+    script = os.path.join(skill_dir, "scripts", "db_query.py")
     return script if os.path.exists(script) else None
 
 

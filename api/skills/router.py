@@ -6,7 +6,7 @@ import yaml
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from .executor import SKILLS_DIR, execute_skill
+from .executor import SKILLS_DIR, MODULES_DIR, execute_skill
 from .skillmd_parser import get_cached_params, get_skill_actions
 from .action_prober import probe_action_params
 from .schema_introspector import introspect_child_tables
@@ -158,14 +158,28 @@ async def get_child_tables(skill: str):
     )
 
 
+def _all_skill_md_paths() -> list[str]:
+    """Return all SKILL.md paths from both skills and erpclaw modules directories."""
+    seen = set()
+    paths = []
+    for base_dir in [SKILLS_DIR, MODULES_DIR]:
+        for p in sorted(glob.glob(os.path.join(base_dir, "*/SKILL.md"))):
+            skill_name = os.path.basename(os.path.dirname(p))
+            if skill_name not in seen:
+                seen.add(skill_name)
+                paths.append(p)
+    return paths
+
+
 @router.get("/api/v1/schema/skills")
 async def list_skills():
     """List installed skills with metadata from SKILL.md frontmatter.
 
     Generic: discovers ANY skill directory containing a SKILL.md file.
+    Scans both ~/clawd/skills/ and ~/.openclaw/erpclaw/modules/.
     """
     skills = []
-    for skill_md_path in sorted(glob.glob(os.path.join(SKILLS_DIR, "*/SKILL.md"))):
+    for skill_md_path in _all_skill_md_paths():
         skill_dir = os.path.dirname(skill_md_path)
         skill_name = os.path.basename(skill_dir)
         meta = {"name": skill_name}
@@ -215,7 +229,7 @@ async def action_index():
     Cached for 5 minutes. Typically ~600 actions across 25 skills.
     """
     actions = []
-    for skill_md_path in sorted(glob.glob(os.path.join(SKILLS_DIR, "*/SKILL.md"))):
+    for skill_md_path in _all_skill_md_paths():
         skill_dir = os.path.dirname(skill_md_path)
         skill_name = os.path.basename(skill_dir)
 

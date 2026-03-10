@@ -224,8 +224,73 @@ def _migrate_audit_log(conn: sqlite3.Connection) -> None:
             pass
 
 
+def _seed_default_roles(conn: sqlite3.Connection) -> None:
+    """Ensure system roles exist with sensible default permissions."""
+    import uuid
+
+    # Create System Manager role if missing
+    sm = conn.execute(
+        "SELECT id FROM webclaw_role WHERE name = 'System Manager'"
+    ).fetchone()
+    if not sm:
+        sm_id = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO webclaw_role (id, name, description, is_system) "
+            "VALUES (?, 'System Manager', 'Full system access', 1)",
+            (sm_id,),
+        )
+    else:
+        sm_id = sm[0]
+
+    # Grant wildcard permissions to System Manager if none exist
+    perm_count = conn.execute(
+        "SELECT COUNT(*) FROM webclaw_role_permission WHERE role_id = ?",
+        (sm_id,),
+    ).fetchone()[0]
+    if perm_count == 0:
+        conn.execute(
+            "INSERT INTO webclaw_role_permission (id, role_id, skill, action_pattern, allowed) "
+            "VALUES (?, ?, '*', '*', 1)",
+            (str(uuid.uuid4()), sm_id),
+        )
+
+    # Create Viewer role if missing
+    vw = conn.execute(
+        "SELECT id FROM webclaw_role WHERE name = 'Viewer'"
+    ).fetchone()
+    if not vw:
+        vw_id = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO webclaw_role (id, name, description, is_system) "
+            "VALUES (?, 'Viewer', 'Read-only access', 1)",
+            (vw_id,),
+        )
+    else:
+        vw_id = vw[0]
+
+    # Grant read permissions to Viewer if none exist
+    vw_perm_count = conn.execute(
+        "SELECT COUNT(*) FROM webclaw_role_permission WHERE role_id = ?",
+        (vw_id,),
+    ).fetchone()[0]
+    if vw_perm_count == 0:
+        conn.execute(
+            "INSERT INTO webclaw_role_permission (id, role_id, skill, action_pattern, allowed) "
+            "VALUES (?, ?, '*', 'list-*', 1)",
+            (str(uuid.uuid4()), vw_id),
+        )
+        conn.execute(
+            "INSERT INTO webclaw_role_permission (id, role_id, skill, action_pattern, allowed) "
+            "VALUES (?, ?, '*', 'get-*', 1)",
+            (str(uuid.uuid4()), vw_id),
+        )
+
+    conn.commit()
+
+
 def init_tables(conn: sqlite3.Connection) -> None:
     """Create all webclaw tables if they don't exist. Idempotent."""
     conn.executescript(SCHEMA_DDL)
     _migrate_webclaw_user(conn)
     _migrate_audit_log(conn)
+    _seed_default_roles(conn)

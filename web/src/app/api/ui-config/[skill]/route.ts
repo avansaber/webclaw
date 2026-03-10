@@ -28,7 +28,16 @@ export async function GET(
   }
 
   const skillsDir = getSkillsDir();
-  const yamlPath = path.join(skillsDir, skill, "UI.yaml");
+  let yamlPath = path.join(skillsDir, skill, "UI.yaml");
+
+  // Fallback: check erpclaw modules directory
+  if (!fs.existsSync(yamlPath)) {
+    const homeDir = process.env.HOME || "/home/nobody";
+    const modulesPath = path.join(homeDir, ".openclaw", "erpclaw", "modules", skill, "UI.yaml");
+    if (fs.existsSync(modulesPath)) {
+      yamlPath = modulesPath;
+    }
+  }
 
   if (!fs.existsSync(yamlPath)) {
     return NextResponse.json({ error: "UI.yaml not found", skill }, { status: 404 });
