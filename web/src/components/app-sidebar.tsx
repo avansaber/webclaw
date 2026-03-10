@@ -347,7 +347,7 @@ function SkillEntityTree({
           if (domainActions.length === 0) return null;
           return (
             <SidebarGroup key={domain.key} className="py-1">
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-wider">
+              <SidebarGroupLabel className="text-[10px] font-semibold tracking-wide">
                 {domain.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -383,7 +383,7 @@ function SkillEntityTree({
           if (ungrouped.length === 0) return null;
           return (
             <SidebarGroup className="py-1">
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-wider">
+              <SidebarGroupLabel className="text-[10px] font-semibold tracking-wide">
                 Other
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -468,7 +468,7 @@ function SkillEntityTree({
       </SidebarGroupContent>
     </SidebarGroup>
     <SidebarGroup className="py-1">
-      <SidebarGroupLabel className="text-[10px] uppercase tracking-wider">
+      <SidebarGroupLabel className="text-[10px] font-semibold tracking-wide">
         Entities
       </SidebarGroupLabel>
       <SidebarGroupContent>
