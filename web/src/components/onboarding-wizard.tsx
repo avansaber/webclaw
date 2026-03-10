@@ -144,6 +144,18 @@ export function OnboardingWizard({
     setCompanyError("");
     setCompanySubmitting(true);
     try {
+      // Ensure erpclaw database is initialized (idempotent — safe to call every time)
+      const initRes = await fetchApi("/erpclaw/initialize-database", {
+        method: "POST",
+      });
+      if (initRes.status === "error") {
+        setCompanyError(
+          (initRes.message as string) || "Failed to initialize ERP database"
+        );
+        setCompanySubmitting(false);
+        return;
+      }
+
       const res = await fetchApi("/erpclaw/setup-company", {
         method: "POST",
         body: JSON.stringify({
@@ -182,8 +194,9 @@ export function OnboardingWizard({
       setCompanyCreated(true);
       setCompanySubmitting(false);
       goToStep(3);
-    } catch {
-      setCompanyError("Network error");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setCompanyError(`Failed to set up company: ${msg}`);
       setCompanySubmitting(false);
     }
   }

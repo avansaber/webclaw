@@ -83,8 +83,9 @@ export default function SetupPage() {
       setSubmitting(false);
       // Transition to the onboarding wizard (steps 2-5)
       setPhase("wizard");
-    } catch {
-      setError("Network error");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unable to reach server";
+      setError(`Setup failed: ${msg}`);
       setSubmitting(false);
     }
   }
