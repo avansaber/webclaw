@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   CommandDialog,
   CommandEmpty,
@@ -106,7 +106,14 @@ export function GlobalSearch() {
   const [actionIndex, setActionIndex] = useState<ActionIndexEntry[]>([]);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
   const { toggle: toggleChat } = useChat();
+
+  // Detect current skill from URL for context-aware actions
+  const currentSkill = useMemo(() => {
+    const match = pathname.match(/^\/skills\/([^/]+)/);
+    return match ? match[1] : null;
+  }, [pathname]);
 
   // Cmd+K / Ctrl+K shortcut
   useEffect(() => {
@@ -224,6 +231,18 @@ export function GlobalSearch() {
             <MessageSquare className="mr-2 h-4 w-4" />
             Open Chat
           </CommandItem>
+          {currentSkill && currentSkill !== "webclaw" && (
+            <CommandItem
+              value={`action runner ${currentSkill} ${skillDisplayName(currentSkill, skills)}`}
+              onSelect={() => navigate(`/skills/${currentSkill}/actions`, `Action Runner (${skillDisplayName(currentSkill, skills)})`)}
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Action Runner
+              <span className="ml-auto text-xs text-muted-foreground">
+                {skillDisplayName(currentSkill, skills)}
+              </span>
+            </CommandItem>
+          )}
         </CommandGroup>
 
         <CommandSeparator />
