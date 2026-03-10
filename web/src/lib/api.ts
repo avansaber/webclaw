@@ -11,6 +11,7 @@ export interface Skill {
   tier?: number;
   tags?: string[];
   requires?: string[];
+  has_ui?: boolean;
 }
 
 export interface ApiResponse {

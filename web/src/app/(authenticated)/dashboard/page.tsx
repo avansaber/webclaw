@@ -206,9 +206,9 @@ async function loadHeadlineKpis(
 ): Promise<HeadlineKpi[]> {
   const kpis: HeadlineKpi[] = [];
 
-  // Fetch UI configs + KPI values in parallel (cap at 12 skills)
+  // Fetch UI configs + KPI values in parallel (only UI skills, cap at 12)
   const targetSkills = skills
-    .filter((s) => s.name !== "erpclaw-web" && s.name !== "webclaw")
+    .filter((s) => s.has_ui && s.name !== "erpclaw-web" && s.name !== "webclaw")
     .slice(0, 12);
 
   const results = await Promise.all(
@@ -417,7 +417,7 @@ export default function Dashboard() {
             </h2>
             <p className="text-muted-foreground">
               {skills.length > 0
-                ? `${skills.length} skills installed across ${sortedCategories.length} categories`
+                ? `${skills.filter((s) => s.has_ui).length} business modules installed`
                 : "Loading skills..."}
             </p>
           </div>
@@ -693,13 +693,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Skill Overview */}
-        {!loading && skills.length > 0 && (
+        {/* Skill Overview (only skills with UI.yaml) */}
+        {!loading && skills.filter((s) => s.has_ui).length > 0 && (
           <>
             <Separator />
-            <h3 className="text-lg font-semibold">Installed Skills</h3>
+            <h3 className="text-lg font-semibold">Business Modules</h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {skills.map((skill) => (
+              {skills.filter((s) => s.has_ui).map((skill) => (
                 <Link key={skill.name} href={`/skills/${skill.name}`}>
                   <Card className="h-full transition-colors hover:bg-accent/50">
                     <CardHeader className="pb-2">

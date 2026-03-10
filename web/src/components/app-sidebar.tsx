@@ -98,11 +98,6 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 
 const APP_TITLE = process.env.NEXT_PUBLIC_OCUI_TITLE || "Webclaw";
 
-// Business suites pinned to top of sidebar (everything else goes under "Other Skills")
-const PINNED_SUITE_PREFIXES = new Set([
-  "erpclaw", "educlaw", "healthclaw", "propertyclaw", "webclaw",
-]);
-
 // ── Recent Skills (localStorage) ────────────────────────────────────────────
 
 const RECENT_SKILLS_KEY = "erpclaw_recent_skills";
@@ -476,13 +471,14 @@ export function AppSidebar() {
     setRecentSkills(getRecentSkills());
   }, []);
 
-  // Filter skills by active profile (show all if no profile set)
+  // Filter skills: only show skills with UI.yaml (web-renderable), then by active profile
   const visibleSkills = useMemo(() => {
-    if (!profile || !profile.active_skills || profile.active_skills.length === 0) {
-      return skills;
+    let filtered = skills.filter((s) => s.has_ui);
+    if (profile?.active_skills && profile.active_skills.length > 0) {
+      const activeSet = new Set(profile.active_skills);
+      filtered = filtered.filter((s) => activeSet.has(s.name));
     }
-    const activeSet = new Set(profile.active_skills);
-    return skills.filter((s) => activeSet.has(s.name));
+    return filtered;
   }, [skills, profile]);
 
   // Track recent skill visits
@@ -610,7 +606,7 @@ export function AppSidebar() {
           </Link>
           <p className="text-xs text-muted-foreground">
             {isMultiSuite
-              ? `${suites.length} suites, ${visibleSkills.length} skills`
+              ? `${suites.length} suites`
               : "AI-native tools on OpenClaw"}
           </p>
         </SidebarHeader>
@@ -674,48 +670,15 @@ export function AppSidebar() {
               </SidebarGroup>
             )}
 
-            {/* Multi-suite mode: pinned business suites first, then others */}
-            {isMultiSuite && (() => {
-              const pinned = filteredSuites.filter(s => PINNED_SUITE_PREFIXES.has(s.prefix));
-              const other = filteredSuites.filter(s => !PINNED_SUITE_PREFIXES.has(s.prefix));
-              return (
-                <>
-                  {pinned.map((suite) => (
-                    <SuiteSection
-                      key={suite.prefix}
-                      suite={suite}
-                      allSkills={skills}
-                      pathname={pathname}
-                    />
-                  ))}
-                  {other.length > 0 && (
-                    <Collapsible defaultOpen={false}>
-                      <SidebarGroup>
-                        <CollapsibleTrigger className="flex w-full items-center gap-2 px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
-                          <span className="flex-1 text-left">Other Skills</span>
-                          <span className="text-[10px] font-normal text-muted-foreground/60">
-                            {other.reduce((n, s) => n + s.skills.length, 0)}
-                          </span>
-                          <ChevronRight className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-90" />
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarGroupContent>
-                            {other.map((suite) => (
-                              <SuiteSection
-                                key={suite.prefix}
-                                suite={suite}
-                                allSkills={skills}
-                                pathname={pathname}
-                              />
-                            ))}
-                          </SidebarGroupContent>
-                        </CollapsibleContent>
-                      </SidebarGroup>
-                    </Collapsible>
-                  )}
-                </>
-              );
-            })()}
+            {/* Multi-suite mode: all suites (non-UI skills already filtered out) */}
+            {isMultiSuite && filteredSuites.map((suite) => (
+              <SuiteSection
+                key={suite.prefix}
+                suite={suite}
+                allSkills={visibleSkills}
+                pathname={pathname}
+              />
+            ))}
 
             {/* Single-suite mode: flat category groups */}
             {!isMultiSuite && skillsForGrouping.length > 0 && (

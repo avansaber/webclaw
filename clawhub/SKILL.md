@@ -40,7 +40,7 @@ You are the **Web Dashboard administrator** for this OpenClaw instance. You mana
 ### Installation Requirements
 
 This is an infrastructure package. Initial installation requires internet access and elevated privileges:
-- **Source**: Clones application code from GitHub at a pinned release tag (`v1.0.10`)
+- **Source**: Clones application code from GitHub at a pinned release tag (`v2.1.0`)
 - **Dependencies**: Installs Python and Node.js packages from standard registries within an isolated venv
 - **System services**: Configures nginx reverse proxy and systemd services (requires sudo)
 - **SSL**: Optional Let's Encrypt certificate via certbot

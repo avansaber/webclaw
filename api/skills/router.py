@@ -184,6 +184,15 @@ async def list_skills():
         skill_name = os.path.basename(skill_dir)
         meta = {"name": skill_name}
 
+        # Check if this skill has a UI.yaml (web-renderable)
+        ui_yaml_exists = False
+        for base_dir in [SKILLS_DIR, MODULES_DIR]:
+            ui_path = os.path.join(base_dir, skill_name, "UI.yaml")
+            if os.path.isfile(ui_path):
+                ui_yaml_exists = True
+                break
+        meta["has_ui"] = ui_yaml_exists
+
         try:
             with open(skill_md_path, "r") as f:
                 content = f.read()
