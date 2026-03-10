@@ -14,7 +14,7 @@ Tests cover:
 
 Usage:
     python3 test_ui_yaml.py                  # Run all tests
-    python3 test_ui_yaml.py erpclaw-people   # Run tests for one skill
+    python3 test_ui_yaml.py erpclaw           # Run tests for one skill
     python3 test_ui_yaml.py --summary        # Print summary only
 """
 
@@ -87,7 +87,7 @@ ACTION_SKILL_MAP = {
     "list-purchase-invoices": "erpclaw",
     "list-material-requests": "erpclaw",
     "list-tax-templates": "erpclaw",
-    "list-employees": "erpclaw-people",
+    "list-employees": "erpclaw",
     "list-projects": "erpclaw-ops",
     "list-assets": "erpclaw-ops",
 }

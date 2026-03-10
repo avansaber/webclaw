@@ -121,15 +121,15 @@ describe("entityKeyFromSlug", () => {
   it("resolves entity key via action_map", () => {
     const config = {
       ocui_version: "1.0",
-      skill: "propclaw",
+      skill: "propertyclaw",
       skill_version: "1.0",
-      display_name: "PropClaw",
+      display_name: "PropertyClaw",
       entities: {},
       action_map: {
-        "list-properties": { component: "DataTable" as const, entity: "propclaw_property" },
+        "list-properties": { component: "DataTable" as const, entity: "propertyclaw_property" },
       },
     };
-    expect(entityKeyFromSlug("properties", config)).toBe("propclaw_property");
+    expect(entityKeyFromSlug("properties", config)).toBe("propertyclaw_property");
   });
 });
 
@@ -144,25 +144,25 @@ describe("entityLabel", () => {
 
 describe("URL builders", () => {
   it("getEntityListUrl", () => {
-    expect(getEntityListUrl("propclaw", "properties")).toBe("/skills/propclaw/properties");
+    expect(getEntityListUrl("propertyclaw", "properties")).toBe("/skills/propertyclaw/properties");
   });
 
   it("getEntityDetailUrl encodes id", () => {
-    expect(getEntityDetailUrl("propclaw", "properties", "abc-123")).toBe("/skills/propclaw/properties/abc-123");
-    expect(getEntityDetailUrl("propclaw", "properties", "a/b")).toBe("/skills/propclaw/properties/a%2Fb");
+    expect(getEntityDetailUrl("propertyclaw", "properties", "abc-123")).toBe("/skills/propertyclaw/properties/abc-123");
+    expect(getEntityDetailUrl("propertyclaw", "properties", "a/b")).toBe("/skills/propertyclaw/properties/a%2Fb");
   });
 
   it("getEntityEditUrl", () => {
-    expect(getEntityEditUrl("propclaw", "properties", "abc-123")).toBe("/skills/propclaw/properties/abc-123/edit");
+    expect(getEntityEditUrl("propertyclaw", "properties", "abc-123")).toBe("/skills/propertyclaw/properties/abc-123/edit");
   });
 
   it("getEntityNewUrl", () => {
-    expect(getEntityNewUrl("propclaw", "properties")).toBe("/skills/propclaw/properties/new");
+    expect(getEntityNewUrl("propertyclaw", "properties")).toBe("/skills/propertyclaw/properties/new");
   });
 
   it("getActionRunnerUrl", () => {
-    expect(getActionRunnerUrl("propclaw")).toBe("/skills/propclaw/actions");
-    expect(getActionRunnerUrl("propclaw", "list-properties")).toBe("/skills/propclaw/actions?action=list-properties");
+    expect(getActionRunnerUrl("propertyclaw")).toBe("/skills/propertyclaw/actions");
+    expect(getActionRunnerUrl("propertyclaw", "list-properties")).toBe("/skills/propertyclaw/actions?action=list-properties");
   });
 });
 
@@ -171,31 +171,31 @@ describe("URL builders", () => {
 describe("migrateActionUrl", () => {
   it("redirects list actions to entity slugs", () => {
     const params = new URLSearchParams("action=list-properties");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties");
   });
 
   it("redirects add actions to /new", () => {
     const params = new URLSearchParams("action=add-property");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties/new");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties/new");
   });
 
   it("redirects get actions with id to detail url", () => {
     const params = new URLSearchParams("action=get-property&id=abc-123");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties/abc-123");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties/abc-123");
   });
 
   it("redirects other actions to action runner", () => {
     const params = new URLSearchParams("action=submit-property");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/actions?action=submit-property");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/actions?action=submit-property");
   });
 
   it("returns null when no action param", () => {
     const params = new URLSearchParams("status=active");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBeNull();
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBeNull();
   });
 
   it("preserves extra params on list redirect", () => {
     const params = new URLSearchParams("action=list-properties&status=active");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties?status=active");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties?status=active");
   });
 });

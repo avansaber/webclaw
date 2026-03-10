@@ -25,12 +25,12 @@ _CROSS_SKILL_LOOKUPS = {
     "warehouse": ("erpclaw", "list-warehouses"),
     "customer": ("erpclaw", "list-customers"),
     "supplier": ("erpclaw", "list-suppliers"),
-    "employee": ("erpclaw-people", "list-employees"),
-    "department": ("erpclaw-people", "list-departments"),
-    "designation": ("erpclaw-people", "list-designations"),
+    "employee": ("erpclaw", "list-employees"),
+    "department": ("erpclaw", "list-departments"),
+    "designation": ("erpclaw", "list-designations"),
     "tax-template": ("erpclaw", "list-tax-templates"),
     "payment-terms": ("erpclaw", "list-payment-terms"),
-    "holiday-list": ("erpclaw-people", "list-holiday-lists"),
+    "holiday-list": ("erpclaw", "list-holiday-lists"),
 }
 
 # Param name patterns → field types

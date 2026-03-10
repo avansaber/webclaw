@@ -37,7 +37,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect old ?action= URLs to new path-based routes
-  // e.g. /skills/propclaw?action=list-properties → /skills/propclaw/properties
+  // e.g. /skills/propertyclaw?action=list-properties → /skills/propertyclaw/properties
   const skillMatch = pathname.match(/^\/skills\/([^/]+)$/);
   if (skillMatch && searchParams.has("action")) {
     const newPath = migrateActionUrl(pathname, searchParams);

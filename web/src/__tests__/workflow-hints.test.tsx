@@ -27,7 +27,7 @@ describe("WorkflowHints", () => {
         completedAction="add-property"
         suggestions={baseSuggestions}
         responseData={{ id: "P001" }}
-        skill="propclaw"
+        skill="propertyclaw"
         onSelect={vi.fn()}
         onDismiss={vi.fn()}
       />,
@@ -41,7 +41,7 @@ describe("WorkflowHints", () => {
         completedAction="add-property"
         suggestions={baseSuggestions}
         responseData={{ id: "P001" }}
-        skill="propclaw"
+        skill="propertyclaw"
         onSelect={vi.fn()}
         onDismiss={vi.fn()}
       />,
@@ -57,13 +57,13 @@ describe("WorkflowHints", () => {
         completedAction="add-property"
         suggestions={baseSuggestions}
         responseData={{ id: "P001", name: "123 Main St" }}
-        skill="propclaw"
+        skill="propertyclaw"
         onSelect={onSelect}
         onDismiss={vi.fn()}
       />,
     );
     fireEvent.click(screen.getByText("Create a lease"));
-    expect(onSelect).toHaveBeenCalledWith("add-lease", "propclaw", { "property-id": "P001" });
+    expect(onSelect).toHaveBeenCalledWith("add-lease", "propertyclaw", { "property-id": "P001" });
   });
 
   it("resolves pass params from nested data object", () => {
@@ -73,13 +73,13 @@ describe("WorkflowHints", () => {
         completedAction="add-property"
         suggestions={[{ action: "add-unit", label: "Add unit", pass: { "property-id": "id" } }]}
         responseData={{ data: { id: "P002" } }}
-        skill="propclaw"
+        skill="propertyclaw"
         onSelect={onSelect}
         onDismiss={vi.fn()}
       />,
     );
     fireEvent.click(screen.getByText("Add unit"));
-    expect(onSelect).toHaveBeenCalledWith("add-unit", "propclaw", { "property-id": "P002" });
+    expect(onSelect).toHaveBeenCalledWith("add-unit", "propertyclaw", { "property-id": "P002" });
   });
 
   it("shows cross-skill label for suggestions from other skills", () => {
@@ -88,7 +88,7 @@ describe("WorkflowHints", () => {
         completedAction="submit-quotation"
         suggestions={crossSkillSuggestion}
         responseData={{}}
-        skill="propclaw"
+        skill="propertyclaw"
         onSelect={vi.fn()}
         onDismiss={vi.fn()}
       />,
@@ -103,7 +103,7 @@ describe("WorkflowHints", () => {
         completedAction="add-property"
         suggestions={baseSuggestions}
         responseData={{}}
-        skill="propclaw"
+        skill="propertyclaw"
         onSelect={vi.fn()}
         onDismiss={vi.fn()}
       />,

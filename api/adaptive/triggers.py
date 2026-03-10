@@ -33,7 +33,7 @@ TRIGGER_RULES: list[TriggerRule] = [
         id="trigger-people",
         entity_type="employee",
         threshold=5,
-        suggested_skill="erpclaw-people",
+        suggested_skill="erpclaw",
         message_template="You have {n} team members. Ready to track leave, attendance, and payroll?",
     ),
     TriggerRule(

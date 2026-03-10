@@ -238,12 +238,12 @@ def test_list_templates(client):
     data = resp.json()
     assert data["status"] == "ok"
     profiles = data["profiles"]
-    assert len(profiles) == 8
+    assert len(profiles) == 18
 
     keys = {p["key"] for p in profiles}
-    assert "general_business" in keys
-    assert "dental_practice" in keys
-    assert "hospital" in keys
+    assert "small-business" in keys
+    assert "dental" in keys
+    assert "healthcare" in keys
     assert "manufacturing" in keys
 
 
@@ -270,18 +270,18 @@ def test_template_structure(client):
 
 
 def test_activate_general_business(client, seeded_user, setup_test_db):
-    """Activate general_business → correct skills + skill_activation rows + vocabulary seeded."""
+    """Activate small-business → correct skills + skill_activation rows + vocabulary seeded."""
     headers = _auth_headers(client, seeded_user)
 
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
 
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "ok"
-    assert data["profile_key"] == "general_business"
-    assert data["display_name"] == "General Business"
+    assert data["profile_key"] == "small-business"
+    assert data["display_name"] == "Small Business"
     assert "erpclaw" in data["active_skills"]
 
     # Verify skill_activation rows
@@ -297,7 +297,7 @@ def test_activate_general_business(client, seeded_user, setup_test_db):
 
     # Verify vocabulary_map was seeded
     vocab_rows = conn.execute(
-        "SELECT * FROM vocabulary_map WHERE profile_key = 'general_business'"
+        "SELECT * FROM vocabulary_map WHERE profile_key = 'small-business'"
     ).fetchall()
     assert len(vocab_rows) > 0
     conn.close()
@@ -308,8 +308,8 @@ def test_activate_with_extra_skills(client, seeded_user):
     headers = _auth_headers(client, seeded_user)
 
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "dental_practice",
-        "extra_skills": ["erpclaw-people"],
+        "profile_key": "dental",
+        "extra_skills": ["erpclaw"],
     }, headers=headers)
 
     assert resp.status_code == 200
@@ -320,7 +320,7 @@ def test_activate_with_extra_skills(client, seeded_user):
     assert "healthclaw-dental" in skills
     assert "erpclaw" in skills
     # Extra skills present
-    assert "erpclaw-people" in skills
+    assert "erpclaw" in skills
 
 
 def test_reactivate_replaces_old(client, seeded_user, setup_test_db):
@@ -329,7 +329,7 @@ def test_reactivate_replaces_old(client, seeded_user, setup_test_db):
 
     # First activation
     resp1 = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
     assert resp1.status_code == 200
     id1 = resp1.json()["id"]
@@ -368,7 +368,7 @@ def test_activate_unknown_profile(client, seeded_user):
 def test_activate_no_auth(client):
     """Activation without auth → 401."""
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     })
     assert resp.status_code == 401
 
@@ -384,7 +384,7 @@ def test_get_current_profile_after_activation(client, seeded_user):
 
     # Activate first
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "dental_practice",
+        "profile_key": "dental",
     }, headers=headers)
 
     resp = client.get("/api/v1/adaptive/profiles/current", headers=headers)
@@ -393,7 +393,7 @@ def test_get_current_profile_after_activation(client, seeded_user):
     assert data["status"] == "ok"
     profile = data["profile"]
     assert profile is not None
-    assert profile["profile_key"] == "dental_practice"
+    assert profile["profile_key"] == "dental"
     assert profile["display_name"] == "Dental Practice"
     assert isinstance(profile["active_skills"], list)
     assert "healthclaw-dental" in profile["active_skills"]
@@ -423,7 +423,7 @@ def test_add_skill(client, seeded_user):
 
     # Activate a profile first
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
 
     # Add a new skill
@@ -442,7 +442,7 @@ def test_remove_skill(client, seeded_user):
 
     # Activate with extra
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
         "extra_skills": ["erpclaw-growth"],
     }, headers=headers)
 
@@ -460,7 +460,7 @@ def test_cannot_remove_erpclaw(client, seeded_user):
     headers = _auth_headers(client, seeded_user)
 
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
 
     resp = client.put("/api/v1/adaptive/profiles/current/skills", json={
@@ -481,7 +481,7 @@ def test_track_add_action_increments_counter(client, seeded_user, setup_test_db)
     headers = _auth_headers(client, seeded_user)
 
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
 
     # Directly call track_action
@@ -501,7 +501,7 @@ def test_track_list_action_no_increment(client, seeded_user):
     headers = _auth_headers(client, seeded_user)
 
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
 
     from adaptive.usage_tracker import track_action
@@ -517,7 +517,7 @@ def test_track_multiple_increments(client, seeded_user):
     headers = _auth_headers(client, seeded_user)
 
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
 
     from adaptive.usage_tracker import track_action
@@ -540,9 +540,9 @@ def test_expansion_prompt_generated_when_threshold_met(client, seeded_user, setu
     headers = _auth_headers(client, seeded_user)
 
     # Activate a profile WITHOUT healthclaw-dental (so trigger can fire)
-    # Use general_business which doesn't have healthclaw-dental
+    # Use small-business which doesn't have healthclaw-dental
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
     profile_id = resp.json()["id"]
 
@@ -571,7 +571,7 @@ def test_no_prompt_below_threshold(client, seeded_user, setup_test_db):
     headers = _auth_headers(client, seeded_user)
 
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
     profile_id = resp.json()["id"]
 
@@ -595,9 +595,9 @@ def test_no_prompt_if_skill_already_active(client, seeded_user, setup_test_db):
     """Skill already active → no prompt generated even if threshold exceeded."""
     headers = _auth_headers(client, seeded_user)
 
-    # Activate dental_practice which already has healthclaw-dental
+    # Activate dental which already has healthclaw-dental
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "dental_practice",
+        "profile_key": "dental",
     }, headers=headers)
     profile_id = resp.json()["id"]
 
@@ -624,7 +624,7 @@ def test_accept_prompt_activates_skill(client, seeded_user, setup_test_db):
 
     # Setup: activate + create prompt
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
     profile_id = resp.json()["id"]
 
@@ -668,7 +668,7 @@ def test_dismiss_prompt(client, seeded_user, setup_test_db):
     headers = _auth_headers(client, seeded_user)
 
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
     profile_id = resp.json()["id"]
 
@@ -685,7 +685,7 @@ def test_dismiss_prompt(client, seeded_user, setup_test_db):
     # Trigger evaluation
     resp = client.get("/api/v1/adaptive/expansion-prompts", headers=headers)
     prompts = resp.json()["prompts"]
-    hr_prompt = next(p for p in prompts if p["suggested_skill"] == "erpclaw-people")
+    hr_prompt = next(p for p in prompts if p["suggested_skill"] == "erpclaw")
 
     # Dismiss
     resp = client.post(f"/api/v1/adaptive/expansion-prompts/{hr_prompt['id']}/dismiss", headers=headers)
@@ -715,7 +715,7 @@ def test_full_flow_activate_track_expand_accept(client, seeded_user, setup_test_
 
     # 1. Activate profile without CRM
     resp = client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "general_business",
+        "profile_key": "small-business",
     }, headers=headers)
     assert resp.status_code == 200
     profile_id = resp.json()["id"]
@@ -751,7 +751,7 @@ def test_vocabulary_injection(client, seeded_user):
     headers = _auth_headers(client, seeded_user)
 
     client.post("/api/v1/adaptive/profiles/activate", json={
-        "profile_key": "dental_practice",
+        "profile_key": "dental",
     }, headers=headers)
 
     from adaptive.vocabulary import get_vocabulary_context
@@ -759,7 +759,7 @@ def test_vocabulary_injection(client, seeded_user):
 
     assert ctx is not None
     assert ctx["profile_name"] == "Dental Practice"
-    assert ctx["profile_key"] == "dental_practice"
+    assert ctx["profile_key"] == "dental"
     # Note: vocabulary and active_skills come from get_current_profile which
     # already parses JSON; get_vocabulary_context re-parses via json.loads,
     # which silently falls back to empty on TypeError. Test the profile name
@@ -774,7 +774,7 @@ def test_vocabulary_build_prompt(client, seeded_user):
 
     ctx = {
         "profile_name": "Dental Practice",
-        "profile_key": "dental_practice",
+        "profile_key": "dental",
         "active_skills": ["healthclaw", "healthclaw-dental", "erpclaw"],
         "vocabulary": {"customer": "patient", "order": "treatment plan"},
     }

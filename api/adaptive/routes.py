@@ -57,7 +57,7 @@ async def list_profile_templates():
 async def activate(request: Request):
     """Create/replace the user's business profile and activate core skills.
 
-    Body: {"profile_key": "dental_practice", "extra_skills": ["erpclaw-people"]}
+    Body: {"profile_key": "dental", "extra_skills": ["erpclaw-ops"]}
     """
     user_id = _get_user_id(request)
     if not user_id:
@@ -123,7 +123,7 @@ async def current_profile(request: Request):
 async def modify_skills(request: Request):
     """Add or remove skills from the current profile.
 
-    Body: {"add": ["erpclaw-people"], "remove": ["erpclaw-growth"]}
+    Body: {"add": ["erpclaw-ops"], "remove": ["erpclaw-growth"]}
     """
     user_id = _get_user_id(request)
     if not user_id:

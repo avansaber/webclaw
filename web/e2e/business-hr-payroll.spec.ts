@@ -11,7 +11,7 @@ import { test, expect, navigateToSkill } from "./fixtures";
 test("HR skill execute tab shows employee actions", async ({
   authedPage: page,
 }) => {
-  await navigateToSkill(page, "erpclaw-people");
+  await navigateToSkill(page, "erpclaw");
 
   // Switch to Actions tab
   await page.getByRole("tab", { name: /actions/i }).click();
@@ -42,7 +42,7 @@ test("HR skill execute tab shows employee actions", async ({
 test("list-employees action returns results", async ({
   authedPage: page,
 }) => {
-  await navigateToSkill(page, "erpclaw-people");
+  await navigateToSkill(page, "erpclaw");
 
   // Switch to Actions tab
   await page.getByRole("tab", { name: /actions/i }).click();
@@ -79,7 +79,7 @@ test("list-employees action returns results", async ({
 test("payroll skill execute tab shows payroll actions", async ({
   authedPage: page,
 }) => {
-  await navigateToSkill(page, "erpclaw-people");
+  await navigateToSkill(page, "erpclaw");
 
   // Switch to Actions tab
   await page.getByRole("tab", { name: /actions/i }).click();
@@ -110,7 +110,7 @@ test("payroll skill execute tab shows payroll actions", async ({
 test("list-salary-components returns results", async ({
   authedPage: page,
 }) => {
-  await navigateToSkill(page, "erpclaw-people");
+  await navigateToSkill(page, "erpclaw");
 
   // Switch to Actions tab
   await page.getByRole("tab", { name: /actions/i }).click();

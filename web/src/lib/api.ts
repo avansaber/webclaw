@@ -178,7 +178,7 @@ export function skillDisplayName(name: string, allSkills?: Skill[]): string {
     if (_prefixCache.prefix && name.startsWith(_prefixCache.prefix)) {
       name = name.slice(_prefixCache.prefix.length);
     } else if (!_prefixCache.prefix) {
-      // Multi-suite mode: strip this skill's own suite prefix (e.g. "erpclaw-" from "erpclaw-people")
+      // Multi-suite mode: strip this skill's own suite prefix (e.g. "erpclaw-" from "erpclaw-growth")
       const idx = name.indexOf("-");
       if (idx > 0) {
         name = name.slice(idx + 1);
@@ -256,7 +256,7 @@ const KNOWN_SUITE_NAMES: Record<string, string> = {
   erpclaw: "ERPClaw",
   auditclaw: "AuditClaw",
   webclaw: "Webclaw",
-  propclaw: "PropClaw",
+  propertyclaw: "PropertyClaw",
 };
 
 /** Extract suite prefix from skill name (everything before the first hyphen). */

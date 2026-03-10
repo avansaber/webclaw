@@ -160,12 +160,12 @@ function discoverQuickActions(skills: Skill[]): QuickAction[] {
     { skill: "erpclaw", action: "add-item", label: "New Item" },
     { skill: "erpclaw", action: "add-payment", label: "New Payment" },
     { skill: "erpclaw", action: "add-journal-entry", label: "New Journal Entry" },
-    { skill: "erpclaw-people", action: "add-employee", label: "New Employee" },
+    { skill: "erpclaw", action: "add-employee", label: "New Employee" },
     { skill: "erpclaw-growth", action: "add-lead", label: "New Lead" },
     { skill: "erpclaw-ops", action: "add-project", label: "New Project" },
     { skill: "erpclaw-ops", action: "add-issue", label: "New Issue" },
-    { skill: "propclaw", action: "add-property", label: "New Property" },
-    { skill: "propclaw", action: "add-work-order", label: "New Work Order" },
+    { skill: "propertyclaw", action: "add-property", label: "New Property" },
+    { skill: "propertyclaw", action: "add-work-order", label: "New Work Order" },
   ];
 
   const installed = new Set(skills.map((s) => s.name));

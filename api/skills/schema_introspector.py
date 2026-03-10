@@ -63,7 +63,7 @@ ENTITY_SKILL_MAP = {
     "list-companies": "erpclaw",
     "list-accounts": "erpclaw",
     "list-cost-centers": "erpclaw",
-    "list-employees": "erpclaw-people",
+    "list-employees": "erpclaw",
     "list-tax-templates": "erpclaw",
     "list-assets": "erpclaw-ops",
 }

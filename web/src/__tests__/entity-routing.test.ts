@@ -23,21 +23,23 @@ import type { UIConfig } from "@/lib/ui-yaml-types";
 // ── Mock UIConfig ────────────────────────────────────────────────────────────
 
 const mockUIConfig: UIConfig = {
-  skill: "propclaw",
-  version: "1.0.0",
+  ocui_version: "1.0",
+  skill: "propertyclaw",
+  skill_version: "1.0.0",
+  display_name: "PropertyClaw",
   entities: {
-    propclaw_property: { label: "Property", label_plural: "Properties" },
-    propclaw_lease: { label: "Lease", label_plural: "Leases" },
-    propclaw_work_order: { label: "Work Order", label_plural: "Work Orders" },
+    propertyclaw_property: { label: "Property", label_plural: "Properties", table: "propertyclaw_property", id_col: "id", name_col: "name", primary_field: "name", identifier_field: "id", fields: {} },
+    propertyclaw_lease: { label: "Lease", label_plural: "Leases", table: "propertyclaw_lease", id_col: "id", name_col: "lease_number", primary_field: "lease_number", identifier_field: "id", fields: {} },
+    propertyclaw_work_order: { label: "Work Order", label_plural: "Work Orders", table: "propertyclaw_work_order", id_col: "id", name_col: "title", primary_field: "title", identifier_field: "id", fields: {} },
   },
   action_map: {
-    "list-properties": { entity: "propclaw_property", component: "DataTable" },
-    "add-property": { entity: "propclaw_property", component: "FormView" },
-    "get-property": { entity: "propclaw_property", component: "DetailView" },
-    "list-leases": { entity: "propclaw_lease", component: "DataTable" },
-    "add-lease": { entity: "propclaw_lease", component: "FormView" },
-    "list-work-orders": { entity: "propclaw_work_order", component: "DataTable" },
-    "add-work-order": { entity: "propclaw_work_order", component: "FormView" },
+    "list-properties": { entity: "propertyclaw_property", component: "DataTable" },
+    "add-property": { entity: "propertyclaw_property", component: "FormView" },
+    "get-property": { entity: "propertyclaw_property", component: "DetailView" },
+    "list-leases": { entity: "propertyclaw_lease", component: "DataTable" },
+    "add-lease": { entity: "propertyclaw_lease", component: "FormView" },
+    "list-work-orders": { entity: "propertyclaw_work_order", component: "DataTable" },
+    "add-work-order": { entity: "propertyclaw_work_order", component: "FormView" },
   },
 };
 
@@ -99,9 +101,9 @@ describe("deriveGetAction", () => {
 
 describe("entityKeyFromSlug", () => {
   it("resolves slug to entity key via action_map", () => {
-    expect(entityKeyFromSlug("properties", mockUIConfig)).toBe("propclaw_property");
-    expect(entityKeyFromSlug("leases", mockUIConfig)).toBe("propclaw_lease");
-    expect(entityKeyFromSlug("work-orders", mockUIConfig)).toBe("propclaw_work_order");
+    expect(entityKeyFromSlug("properties", mockUIConfig)).toBe("propertyclaw_property");
+    expect(entityKeyFromSlug("leases", mockUIConfig)).toBe("propertyclaw_lease");
+    expect(entityKeyFromSlug("work-orders", mockUIConfig)).toBe("propertyclaw_work_order");
   });
 
   it("returns null for unknown slug", () => {
@@ -115,8 +117,8 @@ describe("entityKeyFromSlug", () => {
 
 describe("slugFromEntityKey", () => {
   it("finds slug for entity key", () => {
-    expect(slugFromEntityKey("propclaw_property", mockUIConfig)).toBe("properties");
-    expect(slugFromEntityKey("propclaw_lease", mockUIConfig)).toBe("leases");
+    expect(slugFromEntityKey("propertyclaw_property", mockUIConfig)).toBe("properties");
+    expect(slugFromEntityKey("propertyclaw_lease", mockUIConfig)).toBe("leases");
   });
 
   it("returns null for unknown entity", () => {
@@ -173,35 +175,35 @@ describe("buildIdPayload", () => {
 
 describe("URL builders", () => {
   it("builds skill dashboard URL", () => {
-    expect(getSkillDashboardUrl("propclaw")).toBe("/skills/propclaw");
+    expect(getSkillDashboardUrl("propertyclaw")).toBe("/skills/propertyclaw");
   });
 
   it("builds entity list URL", () => {
-    expect(getEntityListUrl("propclaw", "properties")).toBe("/skills/propclaw/properties");
+    expect(getEntityListUrl("propertyclaw", "properties")).toBe("/skills/propertyclaw/properties");
   });
 
   it("builds entity new URL", () => {
-    expect(getEntityNewUrl("propclaw", "properties")).toBe("/skills/propclaw/properties/new");
+    expect(getEntityNewUrl("propertyclaw", "properties")).toBe("/skills/propertyclaw/properties/new");
   });
 
   it("builds entity detail URL", () => {
-    expect(getEntityDetailUrl("propclaw", "properties", "P001")).toBe("/skills/propclaw/properties/P001");
+    expect(getEntityDetailUrl("propertyclaw", "properties", "P001")).toBe("/skills/propertyclaw/properties/P001");
   });
 
   it("encodes IDs in detail URL", () => {
-    expect(getEntityDetailUrl("propclaw", "properties", "a b")).toBe("/skills/propclaw/properties/a%20b");
+    expect(getEntityDetailUrl("propertyclaw", "properties", "a b")).toBe("/skills/propertyclaw/properties/a%20b");
   });
 
   it("builds entity edit URL", () => {
-    expect(getEntityEditUrl("propclaw", "properties", "P001")).toBe("/skills/propclaw/properties/P001/edit");
+    expect(getEntityEditUrl("propertyclaw", "properties", "P001")).toBe("/skills/propertyclaw/properties/P001/edit");
   });
 
   it("builds action runner URL without action", () => {
-    expect(getActionRunnerUrl("propclaw")).toBe("/skills/propclaw/actions");
+    expect(getActionRunnerUrl("propertyclaw")).toBe("/skills/propertyclaw/actions");
   });
 
   it("builds action runner URL with action", () => {
-    expect(getActionRunnerUrl("propclaw", "submit-lease")).toBe("/skills/propclaw/actions?action=submit-lease");
+    expect(getActionRunnerUrl("propertyclaw", "submit-lease")).toBe("/skills/propertyclaw/actions?action=submit-lease");
   });
 });
 
@@ -210,17 +212,17 @@ describe("URL builders", () => {
 describe("migrateActionUrl", () => {
   it("redirects list-* to entity list", () => {
     const params = new URLSearchParams("action=list-properties");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties");
   });
 
   it("preserves filter params on list", () => {
     const params = new URLSearchParams("action=list-properties&status=active");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties?status=active");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties?status=active");
   });
 
   it("redirects add-* to entity/new with -y → -ies pluralization", () => {
     const params = new URLSearchParams("action=add-property");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties/new");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties/new");
   });
 
   it("redirects add-* to entity/new with regular pluralization", () => {
@@ -235,7 +237,7 @@ describe("migrateActionUrl", () => {
 
   it("redirects get-* with id to entity detail", () => {
     const params = new URLSearchParams("action=get-property&id=P001");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBe("/skills/propclaw/properties/P001");
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBe("/skills/propertyclaw/properties/P001");
   });
 
   it("redirects other actions to action runner", () => {
@@ -247,6 +249,6 @@ describe("migrateActionUrl", () => {
 
   it("returns null when no action param", () => {
     const params = new URLSearchParams("status=active");
-    expect(migrateActionUrl("/skills/propclaw", params)).toBeNull();
+    expect(migrateActionUrl("/skills/propertyclaw", params)).toBeNull();
   });
 });

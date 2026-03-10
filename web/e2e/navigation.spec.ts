@@ -30,7 +30,7 @@ test("sidebar lists skills grouped by category", async ({ authedPage: page }) =>
   // At least some skill names should be visible on the page
   const pageText = await page.textContent("body");
   // Skill display names or identifiers: GL, Selling, Buying, etc.
-  const knownSkills = ["GL", "Selling", "Buying", "Setup", "Inventory", "erpclaw", "erpclaw-people"];
+  const knownSkills = ["GL", "Selling", "Buying", "Setup", "Inventory", "erpclaw"];
   let foundCount = 0;
   for (const skill of knownSkills) {
     if (pageText?.includes(skill)) foundCount++;

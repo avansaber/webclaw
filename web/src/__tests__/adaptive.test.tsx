@@ -18,20 +18,20 @@ vi.mock("lucide-react", () => ({
 
 const mockProfiles: ProfileTemplate[] = [
   {
-    key: "general_business",
-    display_name: "General Business",
-    description: "Small-to-medium business with sales, purchasing, and inventory",
+    key: "small-business",
+    display_name: "Small Business",
+    description: "General small business: sales, purchasing, basic inventory, CRM",
     icon: "briefcase",
     core_skills: ["erpclaw"],
-    optional_skills: ["erpclaw-people", "erpclaw-ops", "erpclaw-growth"],
+    optional_skills: ["erpclaw-ops", "erpclaw-growth"],
   },
   {
-    key: "dental_practice",
+    key: "dental",
     display_name: "Dental Practice",
     description: "Dental clinic with patient management, tooth charts, and CDT codes",
     icon: "stethoscope",
-    core_skills: ["healthclaw", "healthclaw-dental", "erpclaw"],
-    optional_skills: ["erpclaw-people"],
+    core_skills: ["erpclaw", "healthclaw", "healthclaw-dental"],
+    optional_skills: [],
   },
   {
     key: "manufacturing",
@@ -39,7 +39,7 @@ const mockProfiles: ProfileTemplate[] = [
     description: "Production with BOMs, work orders, MRP, and quality control",
     icon: "factory",
     core_skills: ["erpclaw", "erpclaw-ops"],
-    optional_skills: ["erpclaw-people"],
+    optional_skills: [],
   },
 ];
 
@@ -48,56 +48,52 @@ const mockProfiles: ProfileTemplate[] = [
 // ===========================================================================
 
 describe("ProfileSelector", () => {
-  it("renders all profile cards with names and descriptions", () => {
+  it("renders category cards in initial view", () => {
     render(
       <ProfileSelector profiles={mockProfiles} selected={null} onSelect={vi.fn()} />,
     );
-    expect(screen.getByText("General Business")).toBeInTheDocument();
-    expect(screen.getByText("Dental Practice")).toBeInTheDocument();
+    // Should show category labels, not individual profile names
+    expect(screen.getByText("Business")).toBeInTheDocument();
+    expect(screen.getByText("Healthcare")).toBeInTheDocument();
     expect(screen.getByText("Manufacturing")).toBeInTheDocument();
-    expect(screen.getByText(/Small-to-medium business/)).toBeInTheDocument();
-    expect(screen.getByText(/Dental clinic/)).toBeInTheDocument();
   });
 
-  it("highlights selected profile with border", () => {
+  it("highlights category with selected profile", () => {
     const { container } = render(
       <ProfileSelector
         profiles={mockProfiles}
-        selected="dental_practice"
+        selected="dental"
         onSelect={vi.fn()}
       />,
     );
-    // Find the card containing "Dental Practice"
+    // Healthcare category should be highlighted since "dental" is selected
     const cards = container.querySelectorAll("[class*='cursor-pointer']");
-    const dentalCard = Array.from(cards).find((c) =>
-      c.textContent?.includes("Dental Practice"),
+    const healthCard = Array.from(cards).find((c) =>
+      c.textContent?.includes("Healthcare"),
     );
-    expect(dentalCard?.className).toContain("border-primary");
-    expect(dentalCard?.className).toContain("ring-2");
+    expect(healthCard?.className).toContain("border-primary");
   });
 
-  it("calls onSelect with profile key when clicked", () => {
+  it("auto-selects single-profile categories on click", () => {
     const onSelect = vi.fn();
     render(
       <ProfileSelector profiles={mockProfiles} selected={null} onSelect={onSelect} />,
     );
+    // Manufacturing has only 1 profile, so clicking selects it directly
     fireEvent.click(screen.getByText("Manufacturing"));
     expect(onSelect).toHaveBeenCalledWith("manufacturing");
   });
 
-  it("displays core and optional skill counts as badges", () => {
+  it("shows sub-profiles when multi-profile category is clicked", () => {
     render(
       <ProfileSelector profiles={mockProfiles} selected={null} onSelect={vi.fn()} />,
     );
-    // All 3 profiles have core/optional badges
-    const coreBadges = screen.getAllByText(/\d+ core/);
-    expect(coreBadges.length).toBe(3);
-    const optionalBadges = screen.getAllByText(/\+\d+ optional/);
-    expect(optionalBadges.length).toBe(3);
-    // Manufacturing has 2 core (unique)
-    expect(screen.getByText("2 core")).toBeInTheDocument();
-    // General Business has +3 optional (unique)
-    expect(screen.getByText("+3 optional")).toBeInTheDocument();
+    // Healthcare has multiple profiles
+    fireEvent.click(screen.getByText("Healthcare"));
+    // Should now show individual healthcare profiles
+    expect(screen.getByText("Dental Practice")).toBeInTheDocument();
+    // Should show back button
+    expect(screen.getByText("All categories")).toBeInTheDocument();
   });
 });
 
@@ -107,7 +103,7 @@ describe("ProfileSelector", () => {
 
 describe("SkillToggleGrid", () => {
   const coreSkills = ["erpclaw"];
-  const optionalSkills = ["erpclaw-people", "erpclaw-growth", "erpclaw-ops"];
+  const optionalSkills = ["erpclaw-growth", "erpclaw-ops"];
 
   it("shows core skills as non-toggleable badges with check icons", () => {
     render(
@@ -132,8 +128,8 @@ describe("SkillToggleGrid", () => {
         onToggleExtra={onToggle}
       />,
     );
-    fireEvent.click(screen.getByText("People"));
-    expect(onToggle).toHaveBeenCalledWith("erpclaw-people");
+    fireEvent.click(screen.getByText("Growth"));
+    expect(onToggle).toHaveBeenCalledWith("erpclaw-growth");
   });
 
   it("shows selected extras as active badges", () => {
@@ -148,13 +144,13 @@ describe("SkillToggleGrid", () => {
     // The optional section label
     expect(screen.getByText("Optional modules (click to add)")).toBeInTheDocument();
     // Growth should be active (not outline variant)
-    // People should be inactive (outline variant)
+    // Ops should be inactive (outline variant)
     const badges = container.querySelectorAll("[class*='cursor-pointer']");
     const growthBadge = Array.from(badges).find((b) => b.textContent?.includes("Growth"));
-    const peopleBadge = Array.from(badges).find((b) => b.textContent?.includes("People"));
+    const opsBadge = Array.from(badges).find((b) => b.textContent?.includes("Ops"));
     // Active badges don't have "border" class from outline variant
     expect(growthBadge).toBeTruthy();
-    expect(peopleBadge).toBeTruthy();
+    expect(opsBadge).toBeTruthy();
   });
 });
 
@@ -243,7 +239,7 @@ describe("ExpansionPrompts", () => {
       data: [
         {
           id: "p1",
-          suggested_skill: "erpclaw-people",
+          suggested_skill: "erpclaw",
           message: "5 team members. Ready for HR?",
           status: "pending",
           created_at: "2026-03-04T10:00:00Z",

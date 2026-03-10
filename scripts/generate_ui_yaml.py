@@ -3,7 +3,7 @@
 
 Usage:
     python3 generate_ui_yaml.py                    # Generate for all skills without UI.yaml
-    python3 generate_ui_yaml.py erpclaw-people     # Generate for a specific skill
+    python3 generate_ui_yaml.py erpclaw             # Generate for a specific skill
     python3 generate_ui_yaml.py --validate         # Validate all existing UI.yaml files
 """
 
@@ -30,7 +30,6 @@ SKIP_SKILLS = {"erpclaw"}  # Core package has hand-crafted UI.yaml
 # Skill → display info
 SKILL_META = {
     "erpclaw": {"display_name": "ERPClaw Core", "icon": "building", "color": "#6366f1"},
-    "erpclaw-people": {"display_name": "People & Payroll", "icon": "users", "color": "#8b5cf6"},
     "erpclaw-ops": {"display_name": "Operations", "icon": "factory", "color": "#f97316"},
     "erpclaw-growth": {"display_name": "Growth & Analytics", "icon": "trending-up", "color": "#3b82f6"},
     "erpclaw-region-in": {"display_name": "India Compliance", "icon": "flag", "color": "#ff9933"},
@@ -70,15 +69,13 @@ SKILL_TABLES = {
         "meter", "meter_reading", "usage_event", "rate_plan", "rate_tier",
         "billing_period", "billing_adjustment", "prepaid_credit_balance",
         "recurring_invoice_template", "recurring_invoice_template_item",
-    ],
-    "erpclaw-people": [
-        # hr
+        # hr (part of erpclaw core since v3.0.0)
         "employee", "department", "designation", "employee_grade",
         "employee_lifecycle_event", "leave_type", "leave_application",
         "leave_allocation", "attendance", "holiday_list", "holiday",
         "expense_claim", "expense_claim_item",
         "employee_tax_exemption_category", "employee_tax_exemption_declaration",
-        # payroll
+        # payroll (part of erpclaw core since v3.0.0)
         "salary_structure", "salary_structure_detail", "salary_slip",
         "salary_slip_detail", "salary_component", "payroll_run",
         "salary_assignment", "income_tax_slab", "income_tax_slab_rate",
@@ -187,9 +184,7 @@ SKILL_ACTIONS = {
         "generate-invoices", "add-billing-adjustment",
         "list-billing-periods", "get-billing-period",
         "add-prepaid-credit", "get-prepaid-balance",
-    ],
-    "erpclaw-people": [
-        # hr
+        # hr (part of erpclaw core since v3.0.0)
         "add-employee", "update-employee", "get-employee", "list-employees",
         "add-department", "list-departments", "add-designation", "list-designations",
         "add-leave-type", "list-leave-types", "add-leave-allocation",
@@ -199,14 +194,14 @@ SKILL_ACTIONS = {
         "add-expense-claim", "submit-expense-claim", "approve-expense-claim",
         "reject-expense-claim", "update-expense-claim-status",
         "list-expense-claims", "record-lifecycle-event",
-        # payroll
+        # payroll (part of erpclaw core since v3.0.0)
         "add-salary-component", "list-salary-components",
         "add-salary-structure", "get-salary-structure", "list-salary-structures",
         "add-salary-assignment", "list-salary-assignments",
         "create-payroll-run", "generate-salary-slips", "get-salary-slip",
         "list-salary-slips", "submit-payroll-run", "cancel-payroll-run",
         "add-income-tax-slab", "update-fica-config", "update-futa-suta-config",
-        "generate-w2-data", "status",
+        "generate-w2-data",
     ],
     "erpclaw-ops": [
         # manufacturing
@@ -342,7 +337,7 @@ CROSS_SKILL_MAP = {
     "list-purchase-orders": "erpclaw",
     "list-purchase-invoices": "erpclaw",
     "list-purchase-receipts": "erpclaw",
-    "list-employees": "erpclaw-people",
+    "list-employees": "erpclaw",
     "list-projects": "erpclaw-ops",
     "list-tasks": "erpclaw-ops",
     "list-assets": "erpclaw-ops",
@@ -694,7 +689,7 @@ CHILD_PARAM_MAP = {
     "journal_entry_line": "lines",
     # erpclaw (tax)
     "tax_template_line": "lines",
-    # erpclaw-people (payroll)
+    # erpclaw (payroll)
     "salary_structure_component": "components",
     "salary_slip_component": "components",
     # erpclaw-ops (quality)
@@ -705,7 +700,7 @@ CHILD_PARAM_MAP = {
     "bom_operation": "operations",
     "work_order_item": "items",
     "work_order_operation": "operations",
-    # erpclaw-people (hr)
+    # erpclaw (hr)
     "expense_claim_item": "items",
     # erpclaw (inventory)
     "stock_entry_item": "items",
@@ -846,7 +841,7 @@ def generate_ui_yaml(skill: str, schema: dict) -> str:
     # Domain grouping: for multi-table skills (5+ parent entities), auto-detect
     # logical domains by grouping related entities. Child entities are marked
     # tab_hidden so they don't clutter the Browse Data tab.
-    # This was added after PropClaw showed that 18 flat entity tabs is unusable.
+    # This was added after PropertyClaw showed that 18 flat entity tabs is unusable.
     if len(parents) >= 4:
         domains = _detect_domains(skill, parents, children, schema)
         if domains:
@@ -1130,13 +1125,13 @@ def _detect_domains(skill: str, parents: list, children: list, schema: dict) -> 
     """Auto-detect domain groupings for skills with many entities.
 
     Heuristic: group entities by common table name prefix or FK relationships.
-    For example, propclaw has propclaw_property, propclaw_unit (properties domain),
-    propclaw_lease, propclaw_rent_schedule (leases domain), etc.
+    For example, propertyclaw has propertyclaw_property, propertyclaw_unit (properties domain),
+    propertyclaw_lease, propertyclaw_rent_schedule (leases domain), etc.
 
     Returns list of dicts: [{key, label, entities: [table_names]}]
     """
     # Strategy 1: Group by common word in table name (after product prefix)
-    # e.g., propclaw_property, propclaw_unit → group by FK relationship
+    # e.g., propertyclaw_property, propertyclaw_unit → group by FK relationship
     # For generic erpclaw skills, tables don't share a sub-prefix, so we
     # try FK-based grouping instead.
 
@@ -1144,7 +1139,7 @@ def _detect_domains(skill: str, parents: list, children: list, schema: dict) -> 
     if not parents:
         return []
 
-    # Get the common prefix (e.g., "propclaw_", "healthclaw_")
+    # Get the common prefix (e.g., "propertyclaw_", "healthclaw_")
     prefix = ""
     if "_" in parents[0]:
         parts = parents[0].split("_", 1)
@@ -1348,12 +1343,10 @@ _WORKFLOW_CHAINS: dict[str, list[tuple[str, str, str, dict[str, str]]]] = {
         # billing
         ("add-meter", "add-meter-reading", "Record First Reading", {"meter-id": "id"}),
         ("create-billing-period", "run-billing", "Run Billing", {"billing-period-id": "id"}),
-    ],
-    "erpclaw-people": [
-        # hr
+        # hr (consolidated into erpclaw core in v3.0.0)
         ("add-employee", "add-salary-structure", "Create Salary Structure for this employee", {"employee-id": "id"}),
         ("add-expense-claim", "submit-expense-claim", "Submit Expense Claim", {"expense-claim-id": "id"}),
-        # payroll
+        # payroll (consolidated into erpclaw core in v3.0.0)
         ("create-payroll-run", "generate-salary-slips", "Generate Salary Slips", {"payroll-run-id": "id"}),
     ],
     "erpclaw-ops": [

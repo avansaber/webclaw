@@ -47,7 +47,7 @@ ENTITY_MAP: dict[str, str] = {
     "issue": "issue",
     "lead": "lead",
     "opportunity": "opportunity",
-    # PropClaw
+    # PropertyClaw
     "property": "property",
     "lease": "lease",
     "tenant": "tenant",

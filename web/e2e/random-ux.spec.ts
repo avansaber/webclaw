@@ -167,7 +167,7 @@ test("sidebar suite buttons expand and collapse skill lists", async ({
 test("navigate across multiple skills without breaking", async ({
   authedPage: page,
 }) => {
-  const skills = ["erpclaw", "erpclaw-people", "erpclaw-growth"];
+  const skills = ["erpclaw", "erpclaw-ops", "erpclaw-growth"];
 
   for (const skill of skills) {
     await page.goto(`/skills/${skill}`);
@@ -556,7 +556,7 @@ test("buying browse tab shows purchase order data", async ({
 test("payroll browse tab shows salary component data", async ({
   authedPage: page,
 }) => {
-  await navigateToSkill(page, "erpclaw-people");
+  await navigateToSkill(page, "erpclaw");
   await page.waitForTimeout(5_000);
 
   const pageText = (await page.textContent("body")) || "";
@@ -588,10 +588,10 @@ test("browser back button returns to previous skill", async ({
   await navigateToSkill(page, "erpclaw");
   const firstUrl = page.url();
 
-  // Navigate to erpclaw-people
-  await navigateToSkill(page, "erpclaw-people");
+  // Navigate to erpclaw-ops
+  await navigateToSkill(page, "erpclaw-ops");
   const secondUrl = page.url();
-  expect(secondUrl).toContain("erpclaw-people");
+  expect(secondUrl).toContain("erpclaw-ops");
 
   // Go back
   await page.goBack();

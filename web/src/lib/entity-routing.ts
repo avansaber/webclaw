@@ -4,7 +4,7 @@
  * Maps between:
  *   - Entity URL slugs (e.g. "properties", "work-orders")
  *   - List action names (e.g. "list-properties", "list-work-orders")
- *   - UI.yaml entity keys (e.g. "propclaw_property", "propclaw_work_order")
+ *   - UI.yaml entity keys (e.g. "propertyclaw_property", "propertyclaw_work_order")
  *
  * Slug convention: the slug IS the action name minus "list-" prefix.
  *   list-properties     → slug: properties
@@ -61,7 +61,7 @@ export function deriveGetAction(listAction: string, availableActions?: string[])
 
 /**
  * Given a URL slug and UIConfig, find the entity key.
- * slug "properties" → list action "list-properties" → action_map lookup → entity key "propclaw_property"
+ * slug "properties" → list action "list-properties" → action_map lookup → entity key "propertyclaw_property"
  */
 export function entityKeyFromSlug(slug: string, uiConfig: UIConfig | null): string | null {
   if (!uiConfig) return null;
@@ -72,7 +72,7 @@ export function entityKeyFromSlug(slug: string, uiConfig: UIConfig | null): stri
 
 /**
  * Given a UI.yaml entity key, find its URL slug.
- * entity key "propclaw_property" → find list action that maps to it → extract slug
+ * entity key "propertyclaw_property" → find list action that maps to it → extract slug
  */
 export function slugFromEntityKey(entityKey: string, uiConfig: UIConfig): string | null {
   for (const [action, entry] of Object.entries(uiConfig.action_map || {})) {
@@ -118,7 +118,7 @@ export function entityIdParam(slug: string): string {
 
 /**
  * Build query string with both generic `id` and entity-specific ID params.
- * Supports both ERPClaw (uses `--id`) and PropcClaw (uses `--property-id`) conventions.
+ * Supports both ERPClaw (uses `--id`) and PropertyClaw (uses `--property-id`) conventions.
  */
 export function buildIdQuery(slug: string, id: string): string {
   const encoded = encodeURIComponent(id);

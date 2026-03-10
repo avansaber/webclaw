@@ -86,7 +86,7 @@ ALERT_RULES: list[AlertRule] = [
         link_path="/skills/erpclaw/purchase-orders?status=draft",
     ),
     AlertRule(
-        skill="erpclaw-people",
+        skill="erpclaw",
         action="list-leave-requests",
         params={"status": "pending"},
         needs_company_id=True,
@@ -95,7 +95,7 @@ ALERT_RULES: list[AlertRule] = [
         threshold=0,
         severity="warning",
         message_template="{value} pending leave request(s)",
-        link_path="/skills/erpclaw-people/leave-requests?status=pending",
+        link_path="/skills/erpclaw/leave-requests?status=pending",
     ),
     AlertRule(
         skill="erpclaw",
@@ -158,9 +158,9 @@ ALERT_RULES: list[AlertRule] = [
         link_path="/skills/erpclaw-ops/tasks?status=overdue",
     ),
 
-    # ── PropClaw ─────────────────────────────────────────────────────────
+    # ── PropertyClaw ──────────────────────────────────────────────────────
     AlertRule(
-        skill="propclaw",
+        skill="propertyclaw",
         action="list-work-orders",
         params={"status": "open"},
         needs_company_id=True,
@@ -169,10 +169,10 @@ ALERT_RULES: list[AlertRule] = [
         threshold=0,
         severity="warning",
         message_template="{value} open maintenance request(s)",
-        link_path="/skills/propclaw/work-orders?status=open",
+        link_path="/skills/propertyclaw/work-orders?status=open",
     ),
     AlertRule(
-        skill="propclaw",
+        skill="propertyclaw",
         action="list-leases",
         params={"status": "expiring"},
         needs_company_id=True,
@@ -181,10 +181,10 @@ ALERT_RULES: list[AlertRule] = [
         threshold=0,
         severity="warning",
         message_template="{value} lease(s) expiring soon",
-        link_path="/skills/propclaw/leases?status=expiring",
+        link_path="/skills/propertyclaw/leases?status=expiring",
     ),
     AlertRule(
-        skill="propclaw",
+        skill="propertyclaw",
         action="list-applications",
         params={"status": "pending"},
         needs_company_id=True,
@@ -193,7 +193,7 @@ ALERT_RULES: list[AlertRule] = [
         threshold=0,
         severity="info",
         message_template="{value} pending tenant application(s)",
-        link_path="/skills/propclaw/applications?status=pending",
+        link_path="/skills/propertyclaw/applications?status=pending",
     ),
 
     # ── HealthClaw ───────────────────────────────────────────────────────
@@ -220,19 +220,6 @@ ALERT_RULES: list[AlertRule] = [
         severity="critical",
         message_template="{value} rejected insurance claim(s)",
         link_path="/skills/healthclaw/claims?status=rejected",
-    ),
-
-    # ── Booking App ──────────────────────────────────────────────────────
-    AlertRule(
-        skill="booking-app",
-        action="list-bookings",
-        params={"status": "pending"},
-        field="total_count",
-        condition="gt",
-        threshold=0,
-        severity="info",
-        message_template="{value} pending booking(s)",
-        link_path="/skills/booking-app/bookings?status=pending",
     ),
 ]
 

@@ -266,7 +266,7 @@ function SkillEntityTree({
 }) {
   const { config: uiConfig, loading } = useUIConfig(skillName);
   const pathname = usePathname();
-  // Derive active entity slug from pathname: /skills/propclaw/properties → "properties"
+  // Derive active entity slug from pathname: /skills/propertyclaw/properties → "properties"
   const activeSlug = (() => {
     const match = pathname.match(/^\/skills\/[^/]+\/([^/]+)/);
     return match ? match[1] : "";
