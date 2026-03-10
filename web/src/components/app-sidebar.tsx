@@ -98,6 +98,11 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 
 const APP_TITLE = process.env.NEXT_PUBLIC_OCUI_TITLE || "Webclaw";
 
+// Business suites pinned to top of sidebar (everything else goes under "Other Skills")
+const PINNED_SUITE_PREFIXES = new Set([
+  "erpclaw", "educlaw", "healthclaw", "propertyclaw", "webclaw",
+]);
+
 // ── Recent Skills (localStorage) ────────────────────────────────────────────
 
 const RECENT_SKILLS_KEY = "erpclaw_recent_skills";
@@ -669,16 +674,48 @@ export function AppSidebar() {
               </SidebarGroup>
             )}
 
-            {/* Multi-suite mode: collapsible suite sections */}
-            {isMultiSuite &&
-              filteredSuites.map((suite) => (
-                <SuiteSection
-                  key={suite.prefix}
-                  suite={suite}
-                  allSkills={skills}
-                  pathname={pathname}
-                />
-              ))}
+            {/* Multi-suite mode: pinned business suites first, then others */}
+            {isMultiSuite && (() => {
+              const pinned = filteredSuites.filter(s => PINNED_SUITE_PREFIXES.has(s.prefix));
+              const other = filteredSuites.filter(s => !PINNED_SUITE_PREFIXES.has(s.prefix));
+              return (
+                <>
+                  {pinned.map((suite) => (
+                    <SuiteSection
+                      key={suite.prefix}
+                      suite={suite}
+                      allSkills={skills}
+                      pathname={pathname}
+                    />
+                  ))}
+                  {other.length > 0 && (
+                    <Collapsible defaultOpen={false}>
+                      <SidebarGroup>
+                        <CollapsibleTrigger className="flex w-full items-center gap-2 px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
+                          <span className="flex-1 text-left">Other Skills</span>
+                          <span className="text-[10px] font-normal text-muted-foreground/60">
+                            {other.reduce((n, s) => n + s.skills.length, 0)}
+                          </span>
+                          <ChevronRight className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-90" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarGroupContent>
+                            {other.map((suite) => (
+                              <SuiteSection
+                                key={suite.prefix}
+                                suite={suite}
+                                allSkills={skills}
+                                pathname={pathname}
+                              />
+                            ))}
+                          </SidebarGroupContent>
+                        </CollapsibleContent>
+                      </SidebarGroup>
+                    </Collapsible>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Single-suite mode: flat category groups */}
             {!isMultiSuite && skillsForGrouping.length > 0 && (

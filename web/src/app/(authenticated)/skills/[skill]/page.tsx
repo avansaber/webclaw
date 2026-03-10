@@ -67,7 +67,7 @@ function KpiCard({
         ) : (
           <>
             <p className="text-2xl font-bold">
-              {kpi.type === "currency" && value !== null ? `$${Number(value).toLocaleString()}` : String(value ?? "—")}
+              {kpi.type === "currency" && value !== null ? `$${Number(value).toLocaleString()}` : String(value ?? 0)}
             </p>
             {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
           </>
@@ -262,7 +262,7 @@ export default function SkillDashboardPage({
         <div>
           <p className="text-muted-foreground">{String(skillMeta.description || "")}</p>
           <div className="mt-2 flex gap-2">
-            <Badge>Tier {String(skillMeta.tier)}</Badge>
+            <Badge>{["Basic","Standard","Advanced","Professional","Enterprise"][Number(skillMeta.tier)] ?? `Tier ${skillMeta.tier}`}</Badge>
             <Badge variant="secondary">{String(skillMeta.category)}</Badge>
           </div>
         </div>

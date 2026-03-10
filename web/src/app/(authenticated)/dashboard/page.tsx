@@ -708,7 +708,7 @@ export default function Dashboard() {
                           {skillDisplayName(skill.name, skills)}
                         </CardTitle>
                         <Badge variant="secondary" className="text-xs">
-                          T{skill.tier}
+                          {["Basic","Standard","Advanced","Professional","Enterprise"][Number(skill.tier)] ?? `T${skill.tier}`}
                         </Badge>
                       </div>
                       <CardDescription className="line-clamp-2 text-xs">

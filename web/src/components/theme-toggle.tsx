@@ -23,7 +23,7 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={toggle} className="h-8 w-8 p-0">
+    <Button variant="ghost" size="sm" onClick={toggle} className="h-8 w-8 p-0" title="Toggle dark mode">
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
