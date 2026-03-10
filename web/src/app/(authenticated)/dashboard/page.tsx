@@ -334,19 +334,19 @@ export default function Dashboard() {
   }, [setPageContext]);
 
   // Show onboarding banner only when no data exists and not dismissed
-  const hasActivity = (activityData?.activity?.length ?? 0) > 0;
   useEffect(() => {
     if (localStorage.getItem("erpclaw_onboarding_dismissed")) {
       setShowOnboarding(false);
       return;
     }
     // Hide banner if KPI data loaded or activity exists (system has data)
-    if (!kpisLoading && (kpis.length > 0 || hasActivity)) {
+    const hasAct = activity.length > 0;
+    if (!kpisLoading && (kpis.length > 0 || hasAct)) {
       setShowOnboarding(false);
-    } else if (!kpisLoading && kpis.length === 0 && !hasActivity) {
+    } else if (!kpisLoading && kpis.length === 0 && !hasAct) {
       setShowOnboarding(true);
     }
-  }, [kpisLoading, kpis, hasActivity]);
+  }, [kpisLoading, kpis, activity]);
 
   function handleDismissOnboarding() {
     localStorage.setItem("erpclaw_onboarding_dismissed", "1");
