@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -48,8 +47,6 @@ import {
   fetchApi,
   type Skill,
   skillDisplayName,
-  CATEGORY_CONFIG,
-  categoryLabel,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useChat } from "@/lib/chat";
@@ -379,17 +376,10 @@ export default function Dashboard() {
   // Warning KPIs for "Needs Attention"
   const warningKpis = kpis.filter((k) => k.severity === "warning" && k.value !== null && Number(k.value) > 0);
 
-  // Group skills by category
-  const grouped: Record<string, Skill[]> = {};
-  for (const s of skills) {
-    const cat = s.category || "other";
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(s);
-  }
-  const sortedCategories = Object.keys(grouped).sort(
-    (a, b) =>
-      (CATEGORY_CONFIG[a]?.order ?? 99) - (CATEGORY_CONFIG[b]?.order ?? 99)
-  );
+  // Derive company context from KPIs for subtitle
+  const companyKpi = kpis.find((k) => k.skill === "erpclaw" && k.label.toLowerCase().includes("compan"));
+  const customerKpi = kpis.find((k) => k.skill === "erpclaw" && k.label.toLowerCase().includes("customer"));
+  const itemKpi = kpis.find((k) => k.skill === "erpclaw" && k.label.toLowerCase().includes("item"));
 
   const greeting = getGreeting();
   const name = firstName(user?.full_name);
@@ -416,9 +406,14 @@ export default function Dashboard() {
               {greeting}{name ? `, ${name}` : ""}
             </h2>
             <p className="text-muted-foreground">
-              {skills.length > 0
-                ? `${skills.filter((s) => s.has_ui).length} business modules installed`
-                : "Loading skills..."}
+              {kpis.length > 0
+                ? [
+                    customerKpi?.value != null ? `${customerKpi.value} customers` : null,
+                    itemKpi?.value != null ? `${itemKpi.value} items` : null,
+                  ].filter(Boolean).join(" · ") || "Your business at a glance"
+                : skills.length > 0
+                  ? "Your business at a glance"
+                  : "Loading..."}
             </p>
           </div>
           <Badge variant="outline" className="gap-1">
@@ -539,20 +534,11 @@ export default function Dashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Skills Installed</CardTitle>
+                <CardTitle className="text-sm font-medium">Business Modules</CardTitle>
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{skills.length}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Categories</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{sortedCategories.length}</div>
+                <div className="text-2xl font-bold">{skills.filter((s) => s.has_ui).length}</div>
               </CardContent>
             </Card>
           </div>
@@ -693,50 +679,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Skill Overview (only skills with UI.yaml) */}
-        {!loading && skills.filter((s) => s.has_ui).length > 0 && (
-          <>
-            <Separator />
-            <h3 className="text-lg font-semibold">Business Modules</h3>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {skills.filter((s) => s.has_ui).map((skill) => (
-                <Link key={skill.name} href={`/skills/${skill.name}`}>
-                  <Card className="h-full transition-colors hover:bg-accent/50">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm">
-                          {skillDisplayName(skill.name, skills)}
-                        </CardTitle>
-                        <Badge variant="secondary" className="text-xs">
-                          {["Basic","Standard","Advanced","Professional","Enterprise"][Number(skill.tier)] ?? `T${skill.tier}`}
-                        </Badge>
-                      </div>
-                      <CardDescription className="line-clamp-2 text-xs">
-                        {skill.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="text-[10px]">
-                          {CATEGORY_CONFIG[skill.category || ""]?.label ?? skill.category}
-                        </Badge>
-                        {skill.tags?.slice(0, 2).map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="outline"
-                            className="text-[10px]"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
