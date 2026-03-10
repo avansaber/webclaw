@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import { Loader2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { skillDisplayName } from "@/lib/api";
 import { useUIConfig } from "@/lib/ui-config";
 import { DataTable } from "@/components/data-table";
@@ -16,7 +16,6 @@ import {
   entityLabel,
   deriveAddAction,
   deriveGetAction,
-  getSkillDashboardUrl,
   getEntityDetailUrl,
   getEntityNewUrl,
 } from "@/lib/entity-routing";
@@ -93,15 +92,6 @@ export default function EntityListPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(getSkillDashboardUrl(skill))}
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Dashboard
-          </Button>
-          <span className="text-muted-foreground">/</span>
           <h2 className="text-lg font-semibold">{label}</h2>
           {totalCount != null && (
             <Badge variant="secondary">{totalCount} records</Badge>

@@ -220,8 +220,13 @@ export default function SkillDashboardPage({
     }
   }
 
+  // Webclaw IS the dashboard — redirect to home
+  useEffect(() => {
+    if (skill === "webclaw") router.replace("/dashboard");
+  }, [skill, router]);
+
   // Loading state
-  if (uiLoading) {
+  if (uiLoading || skill === "webclaw") {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
