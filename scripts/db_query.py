@@ -305,7 +305,7 @@ def action_create_user(args):
 
 
 def action_reset_password(args):
-    """Generate a new temporary password for a user."""
+    """Reset password for a user. Uses --password if provided, otherwise generates a random one."""
     email = args.email
     if not email:
         _fail("--email is required")
@@ -317,8 +317,14 @@ def action_reset_password(args):
     if not user:
         _fail(f"User not found: {email}")
 
-    temp_password = secrets.token_urlsafe(12)
-    pw_hash = _hash_password(temp_password)
+    if args.password:
+        chosen_password = args.password
+        pw_hash = _hash_password(chosen_password)
+        msg = f"Password set for {email}\nAll existing sessions have been invalidated."
+    else:
+        chosen_password = secrets.token_urlsafe(12)
+        pw_hash = _hash_password(chosen_password)
+        msg = f"Password reset for {email}\nNew temporary password: {chosen_password}\nAll existing sessions have been invalidated."
 
     q = Q.update(wu).set(wu.password_hash, P()).where(wu.id == P())
     conn.execute(q.get_sql(), (pw_hash, user["id"]))
@@ -328,10 +334,7 @@ def action_reset_password(args):
     conn.execute(q.get_sql(), (user["id"],))
     conn.commit()
 
-    _ok({
-        "status": "ok",
-        "message": f"Password reset for {email}\nNew temporary password: {temp_password}\nAll existing sessions have been invalidated.",
-    })
+    _ok({"status": "ok", "message": msg})
 
 
 def action_disable_user(args):
@@ -493,6 +496,7 @@ if __name__ == "__main__":
     parser.add_argument("--email", default=None)
     parser.add_argument("--full-name", default=None)
     parser.add_argument("--role", default=None)
+    parser.add_argument("--password", default=None)
 
     args, _unknown = parser.parse_known_args()
     try:

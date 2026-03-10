@@ -99,6 +99,9 @@ Create a web user for alice@company.com with Manager role
 ```
 Reset the web password for alice@company.com
 → runs: reset-password --email alice@company.com
+
+Set a specific password for alice
+→ runs: reset-password --email alice@company.com --password MyNewPass123!
 ```
 
 ## All Actions (Tier 2)
@@ -110,7 +113,7 @@ Reset the web password for alice@company.com
 | `renew-ssl` | — | Check + renew SSL certificate |
 | `list-users` | — | List all web dashboard users |
 | `create-user` | `--email`, `--full-name`, `--role` | Create user with temp password |
-| `reset-password` | `--email` | Generate new temp password |
+| `reset-password` | `--email`, `--password` (optional) | Set specific password, or generate random one |
 | `disable-user` | `--email` | Disable a user account |
 | `list-sessions` | — | Show active login sessions |
 | `clear-sessions` | — | Force all users to re-login |
