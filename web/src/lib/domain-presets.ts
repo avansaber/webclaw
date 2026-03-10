@@ -47,23 +47,27 @@ const ERPCLAW_DOMAIN_PRESETS: Record<string, string[]> = {
   "custom":                [], // empty = show all
 };
 
+// Default domain set when no profile is active (covers typical small business use)
+const DEFAULT_DOMAINS = ERPCLAW_DOMAIN_PRESETS["small-business"];
+
 /**
  * Get visible ERPClaw domains for a profile.
  * Returns null if all domains should be shown (no filtering).
  */
 export function getVisibleDomains(
-  profileKey: string | undefined,
+  profileKey: string | undefined | null,
   skillName: string,
 ): string[] | null {
   // Only filter ERPClaw domains — verticals show everything
   if (skillName !== "erpclaw") return null;
 
-  // No profile = show all (admin / no onboarding)
-  if (!profileKey) return null;
+  // No profile = use default preset (progressive disclosure for new users)
+  if (!profileKey) return DEFAULT_DOMAINS;
 
   const preset = ERPCLAW_DOMAIN_PRESETS[profileKey];
-  // Unknown profile or empty preset = show all
-  if (!preset || preset.length === 0) return null;
+  // Unknown profile = use default; empty preset = show all (enterprise/full-erp)
+  if (preset === undefined) return DEFAULT_DOMAINS;
+  if (preset.length === 0) return null;
 
   return preset;
 }
