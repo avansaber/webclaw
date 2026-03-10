@@ -75,6 +75,24 @@ function firstName(fullName?: string): string {
   return fullName.split(" ")[0];
 }
 
+// Map audit-log skill (domain name) to actual routable skill path
+const ERPCLAW_DOMAINS = new Set([
+  "erpclaw-selling", "erpclaw-buying", "erpclaw-stock", "erpclaw-accounting",
+  "erpclaw-hr", "erpclaw-payroll", "erpclaw-billing", "erpclaw-tax",
+  "erpclaw-setup", "erpclaw-advanced-accounting",
+]);
+
+function activitySkillHref(skill: string): string {
+  // erpclaw internal domains → /skills/erpclaw
+  if (ERPCLAW_DOMAINS.has(skill)) return "/skills/erpclaw";
+  // Vertical sub-domains (prop-propertyclaw-tenants → propertyclaw)
+  if (skill.startsWith("prop-propertyclaw")) return "/skills/propertyclaw";
+  if (skill.startsWith("health-healthclaw")) return "/skills/healthclaw";
+  if (skill.startsWith("edu-educlaw") || skill === "educlaw") return "/skills/educlaw";
+  // Default: try as-is
+  return `/skills/${skill}`;
+}
+
 // ── Format helpers ──────────────────────────────────────────────────────────
 
 function formatCurrency(val: unknown): string {
@@ -315,14 +333,20 @@ export default function Dashboard() {
     setPageContext({ view: "dashboard" });
   }, [setPageContext]);
 
-  // Show onboarding banner when no KPI data exists and not dismissed
+  // Show onboarding banner only when no data exists and not dismissed
+  const hasActivity = (activityData?.activity?.length ?? 0) > 0;
   useEffect(() => {
-    if (!kpisLoading && kpis.length === 0 && !localStorage.getItem("erpclaw_onboarding_dismissed")) {
-      setShowOnboarding(true);
-    } else {
+    if (localStorage.getItem("erpclaw_onboarding_dismissed")) {
       setShowOnboarding(false);
+      return;
     }
-  }, [kpisLoading, kpis]);
+    // Hide banner if KPI data loaded or activity exists (system has data)
+    if (!kpisLoading && (kpis.length > 0 || hasActivity)) {
+      setShowOnboarding(false);
+    } else if (!kpisLoading && kpis.length === 0 && !hasActivity) {
+      setShowOnboarding(true);
+    }
+  }, [kpisLoading, kpis, hasActivity]);
 
   function handleDismissOnboarding() {
     localStorage.setItem("erpclaw_onboarding_dismissed", "1");
@@ -444,7 +468,7 @@ export default function Dashboard() {
                 <Button
                   variant="outline"
                   onClick={handleDismissOnboarding}
-                  className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+                  className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
                 >
                   Start Fresh
                 </Button>
@@ -643,7 +667,7 @@ export default function Dashboard() {
                           <StatusIcon className={`h-4 w-4 mt-0.5 ${statusColor}`} />
                           <div className="flex-1 min-w-0">
                             <Link
-                              href={`/skills/${item.skill}`}
+                              href={activitySkillHref(item.skill)}
                               className="text-sm font-medium hover:underline"
                             >
                               {item.action}
