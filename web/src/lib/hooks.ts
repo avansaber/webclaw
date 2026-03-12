@@ -74,9 +74,19 @@ export function useActivity(params?: { skill?: string; limit?: number }) {
   });
 }
 
-/** Convenience: extract the actions array from skill status. */
+/** Discover available actions for a skill.
+ *
+ * Uses the dedicated schema discovery endpoint which has 3-level fallback
+ * (argparse probe → error parsing → SKILL.md YAML). This works for all skills
+ * including standalone ones whose `status` action doesn't return an actions list.
+ */
 export function useSkillActions(skill: string) {
-  const { data, isLoading } = useSkillStatus(skill);
+  const { data, isLoading } = useQuery({
+    queryKey: ["skill-actions", skill],
+    queryFn: () => fetchApi(`/schema/actions/${skill}`),
+    staleTime: 5 * 60_000, // 5 min — action lists rarely change
+    enabled: !!skill,
+  });
   const actions = (data?.actions as string[]) || [];
   return { actions, isLoading, data };
 }
