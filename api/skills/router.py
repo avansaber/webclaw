@@ -354,13 +354,27 @@ async def get_activity(limit: int = 10):
         return {"status": "ok", "activity": []}
 
 
+def _is_success(result: dict) -> bool:
+    """Determine if a skill action result is successful.
+
+    Supports both ERPClaw-style (status: "ok") and standalone skills
+    that return data without a status key.
+    """
+    if result.get("status") in ("ok", "partial"):
+        return True
+    if "error" in result or result.get("status") == "error":
+        return False
+    # No status key and no error key — treat as success (standalone skill response)
+    return "status" not in result
+
+
 @router.get("/api/v1/{skill}/{action}")
 async def get_action(skill: str, action: str, request: Request):
     """Handle GET requests (list-*, get-*, status, etc.)."""
     params = sanitize_skill_params(dict(request.query_params))
     params = _inject_company_id(skill, action, params)
     result = await execute_skill(skill, action, params)
-    status_code = 200 if result.get("status") in ("ok", "partial") else 400
+    status_code = 200 if _is_success(result) else 400
     return JSONResponse(result, status_code=status_code)
 
 
@@ -376,10 +390,11 @@ async def post_action(skill: str, action: str, request: Request):
     params = sanitize_skill_params(params)
     params = _inject_company_id(skill, action, params)
     result = await execute_skill(skill, action, params)
-    status_code = 200 if result.get("status") in ("ok", "partial") else 400
+    success = _is_success(result)
+    status_code = 200 if success else 400
 
     # Emit data-change event for successful mutating actions (SSE subscribers)
-    if result.get("status") == "ok" and not action.startswith(("list-", "get-")):
+    if success and not action.startswith(("list-", "get-")):
         entity = action.split("-", 1)[1] if "-" in action else action
         await emit_data_change(skill, entity)
 

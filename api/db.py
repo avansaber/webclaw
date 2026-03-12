@@ -112,9 +112,13 @@ def _resolve_skill_db_path(skill_name: str) -> str | None:
             end = content.index("---", 3)
             frontmatter = yaml.safe_load(content[3:end])
             if frontmatter:
+                # Check webclaw.database first (ERPClaw modules)
                 webclaw = frontmatter.get("webclaw", {})
                 if isinstance(webclaw, dict) and webclaw.get("database"):
                     db_path = os.path.expanduser(webclaw["database"])
+                # Then check top-level database key (standalone skills like OilCRM)
+                elif frontmatter.get("database"):
+                    db_path = os.path.expanduser(frontmatter["database"])
     except Exception:
         pass
 
