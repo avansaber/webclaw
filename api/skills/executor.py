@@ -50,7 +50,7 @@ def build_cli_args(action: str, params: dict) -> list[str]:
     # Keys arrive kebab-case or underscore; normalise to kebab for comparison.
     norm_keys = {k.replace("_", "-") for k in params}
     has_specific_id = any(
-        k.endswith("-id") and k != "id" and k != "company-id"
+        k.endswith("-id") and k != "id"
         for k in norm_keys
     )
     skip_generic_id = has_specific_id and ("id" in norm_keys)
