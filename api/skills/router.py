@@ -98,12 +98,15 @@ async def list_actions(skill: str):
     if actions:
         return {"status": "ok", "skill": skill, "actions": actions}
 
-    # Level 2: Parse action names from suggestion/message text
-    suggestion = result.get("suggestion", "") or result.get("message", "")
-    if "available actions:" in suggestion.lower():
-        # Extract "Available actions: add-foo, list-foos, ..."
-        idx = suggestion.lower().index("available actions:")
-        raw = suggestion[idx + len("available actions:"):].strip()
+    # Level 2: Parse action names from suggestion/message/error text
+    suggestion = result.get("suggestion", "") or result.get("message", "") or result.get("error", "")
+    if "available:" in suggestion.lower():
+        # Extract "Available: add-foo, list-foos, ..." or "Available actions: ..."
+        idx = suggestion.lower().index("available:")
+        raw = suggestion[idx + len("available:"):].strip()
+        # Strip leading "actions:" if present (handles both "Available:" and "Available actions:")
+        if raw.lower().startswith("actions:"):
+            raw = raw[len("actions:"):].strip()
         parsed = [a.strip() for a in raw.split(",") if a.strip()]
         if parsed:
             return {"status": "ok", "skill": skill, "actions": parsed}
