@@ -18,6 +18,7 @@ import {
   deriveGetAction,
   getEntityDetailUrl,
   getEntityNewUrl,
+  singularize,
 } from "@/lib/entity-routing";
 
 const PAGE_SIZE = 20;
@@ -105,7 +106,7 @@ export default function EntityListPage({
               onClick={() => router.push(getEntityNewUrl(skill, slug))}
             >
               <Plus className="h-3.5 w-3.5" />
-              New {label.replace(/s$/, "").replace(/ies$/, "y")}
+              New {singularize(label)}
             </Button>
           )}
         </div>
@@ -139,7 +140,7 @@ export default function EntityListPage({
                 onClick={() => router.push(getEntityNewUrl(skill, slug))}
               >
                 <Plus className="h-3.5 w-3.5" />
-                Create your first {label.replace(/s$/, "").replace(/ies$/, "y").toLowerCase()}
+                Create your first {singularize(label).toLowerCase()}
               </Button>
             )}
           </CardContent>

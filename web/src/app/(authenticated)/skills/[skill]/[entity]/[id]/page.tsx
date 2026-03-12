@@ -295,7 +295,7 @@ export default function EntityDetailPage({
   // Also offer generic actions based on available actions list
   const genericActions: { action: string; label: string; icon: React.ReactNode; variant: "default" | "outline" | "destructive" }[] = [];
   const entityName = singularize(slug).replace(/-/g, "_");
-  if (allActions.includes(`update-${entityName}`) && status === "draft") {
+  if (allActions.includes(`update-${entityName}`) && (!status || status === "draft")) {
     genericActions.push({ action: "edit", label: "Edit", icon: <Pencil className="h-3.5 w-3.5" />, variant: "outline" });
   }
   if (allActions.includes(`submit-${entityName}`) && status === "draft") {
@@ -438,16 +438,28 @@ export default function EntityDetailPage({
             </Button>
           ),
         )}
-        {availableActions.map((da) => (
-          <Button
-            key={da.action}
-            variant={da.destructive ? "destructive" : da.primary ? "default" : "outline"}
-            size="sm"
-            onClick={() => setConfirmAction({ action: da.action, label: da.label })}
-          >
-            {da.label}
-          </Button>
-        ))}
+        {availableActions.map((da) =>
+          da.action.startsWith("update-") ? (
+            <Button
+              key={da.action}
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => router.push(getEntityEditUrl(skill, slug, decodedId))}
+            >
+              <Pencil className="h-3.5 w-3.5" /> {da.label}
+            </Button>
+          ) : (
+            <Button
+              key={da.action}
+              variant={da.destructive ? "destructive" : da.primary ? "default" : "outline"}
+              size="sm"
+              onClick={() => setConfirmAction({ action: da.action, label: da.label })}
+            >
+              {da.label}
+            </Button>
+          ),
+        )}
       </div>
     </>
   ) : null;
