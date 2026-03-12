@@ -582,18 +582,20 @@ export function DynamicForm({
 
       const result = await postAction(skill, spec.submit_action, params);
 
-      if (result.status === "ok") {
-        showToast({
-          type: "success",
-          message: `${spec.title.replace("New ", "")} created successfully`,
-        });
-        onSuccess?.(spec.submit_action, result as Record<string, unknown>);
-      } else {
+      // fetchApi already throws on HTTP errors and status:"error" responses,
+      // so reaching here means success. Standalone skills may not include status:"ok".
+      if (result.status === "error") {
         showToast({
           type: "error",
           message: result.message || "Action failed",
           duration: 0,
         });
+      } else {
+        showToast({
+          type: "success",
+          message: result.message || `${spec.title.replace("New ", "")} created successfully`,
+        });
+        onSuccess?.(spec.submit_action, result as Record<string, unknown>);
       }
     } catch (e) {
       showToast({ type: "error", message: String(e) });
