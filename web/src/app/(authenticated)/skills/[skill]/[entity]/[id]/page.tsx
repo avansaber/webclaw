@@ -244,7 +244,7 @@ export default function EntityDetailPage({
     : null;
 
   // Load record via React Query (only after getAction is validated)
-  const { data: recordData, isLoading: recordLoading } = useEntityDetail(
+  const { data: recordData, isLoading: recordLoading, error: recordError } = useEntityDetail(
     skill, getAction || "", decodedId,
     { enabled: !!getAction, entitySlug: slug },
   );
@@ -328,8 +328,23 @@ export default function EntityDetailPage({
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to {label}
         </Button>
         <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-destructive">Record not found: {decodedId}</p>
+          <CardContent className="pt-6 space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">
+              {singularLabel} not found
+            </p>
+            <p className="text-xs text-muted-foreground">
+              The record <span className="font-mono">{decodedId}</span> could not be loaded.
+              {recordError ? ` (${recordError instanceof Error ? recordError.message : "Unknown error"})` : ""}
+              {" "}It may have been deleted or the ID may be incorrect.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => router.push(getEntityListUrl(skill, slug))}
+            >
+              View all {label.toLowerCase()}
+            </Button>
           </CardContent>
         </Card>
       </div>

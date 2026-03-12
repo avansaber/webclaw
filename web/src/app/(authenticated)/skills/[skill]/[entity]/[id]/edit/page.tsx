@@ -48,7 +48,7 @@ export default function EntityEditPage({
     : null;
 
   // Load current record via React Query
-  const { data: recordData, isLoading: recordLoading } = useEntityDetail(
+  const { data: recordData, isLoading: recordLoading, error: recordError } = useEntityDetail(
     skill, getAction || "", decodedId,
     { enabled: !!getAction, entitySlug: slug },
   );
@@ -108,7 +108,10 @@ export default function EntityEditPage({
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">
               {!record
-                ? `Record not found: ${decodedId}`
+                ? <>
+                    {singularLabel} not found — <span className="font-mono text-xs">{decodedId}</span>
+                    {recordError ? ` (${recordError instanceof Error ? recordError.message : "Unknown error"})` : ""}
+                  </>
                 : `No edit form available for ${singularLabel.toLowerCase()}.`}
             </p>
           </CardContent>

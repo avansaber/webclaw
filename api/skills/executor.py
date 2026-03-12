@@ -41,12 +41,29 @@ def build_cli_args(action: str, params: dict) -> list[str]:
     Boolean values are passed as "1"/"0" strings since erpclaw scripts use
     value-based boolean args (e.g. --exempt-from-sales-tax 1), not store_true.
     False booleans are omitted entirely (absence = false for all erpclaw scripts).
+
+    When both a generic 'id' and an entity-specific ID param (e.g. 'lease-id')
+    are present, the generic 'id' is skipped to avoid argparse errors in skills
+    that only define entity-specific ID flags.
     """
+    # Detect whether an entity-specific ID param exists alongside generic 'id'.
+    # Keys arrive kebab-case or underscore; normalise to kebab for comparison.
+    norm_keys = {k.replace("_", "-") for k in params}
+    has_specific_id = any(
+        k.endswith("-id") and k != "id" and k != "company-id"
+        for k in norm_keys
+    )
+    skip_generic_id = has_specific_id and ("id" in norm_keys)
+
     args = ["--action", action]
     for key, value in params.items():
         if key.startswith("_"):
             continue
-        flag = f"--{key.replace('_', '-')}"
+        norm_key = key.replace("_", "-")
+        # Skip generic --id when entity-specific ID is present
+        if skip_generic_id and norm_key == "id":
+            continue
+        flag = f"--{norm_key}"
         # Handle actual booleans — pass "1" for true, skip for false
         if isinstance(value, bool):
             if value:
