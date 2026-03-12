@@ -262,13 +262,23 @@ export default function EntityDetailPage({
     if (recordData.record && typeof recordData.record === "object" && !Array.isArray(recordData.record)) {
       return recordData.record as Record<string, unknown>;
     }
-    // Entity-name key: if response has a single non-meta key containing an object, unwrap it
+    // Entity-name key: find the primary object in the response.
+    // Handles both single-key ({company: {...}}) and multi-key ({well: {...}, interests: [...]})
+    // by finding the one plain-object value (arrays are child data, not the record).
     const dataKeys = Object.keys(recordData).filter(k => !k.startsWith("_") && k !== "status" && k !== "request_id");
-    if (dataKeys.length === 1) {
-      const val = (recordData as Record<string, unknown>)[dataKeys[0]];
-      if (val && typeof val === "object" && !Array.isArray(val)) {
-        return val as Record<string, unknown>;
+    const objectKeys = dataKeys.filter(k => {
+      const val = (recordData as Record<string, unknown>)[k];
+      return val && typeof val === "object" && !Array.isArray(val);
+    });
+    if (objectKeys.length === 1) {
+      const primary = (recordData as Record<string, unknown>)[objectKeys[0]] as Record<string, unknown>;
+      // Merge any sibling arrays (child tables) into the record for detail sections
+      for (const k of dataKeys) {
+        if (k !== objectKeys[0] && Array.isArray((recordData as Record<string, unknown>)[k])) {
+          primary[k] = (recordData as Record<string, unknown>)[k];
+        }
       }
+      return primary;
     }
     return recordData as Record<string, unknown>;
   })();

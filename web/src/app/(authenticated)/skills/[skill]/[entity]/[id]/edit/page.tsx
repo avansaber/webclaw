@@ -63,11 +63,12 @@ export default function EntityEditPage({
       return recordData.record as Record<string, unknown>;
     }
     const dataKeys = Object.keys(recordData).filter(k => !k.startsWith("_") && k !== "status" && k !== "request_id");
-    if (dataKeys.length === 1) {
-      const val = (recordData as Record<string, unknown>)[dataKeys[0]];
-      if (val && typeof val === "object" && !Array.isArray(val)) {
-        return val as Record<string, unknown>;
-      }
+    const objectKeys = dataKeys.filter(k => {
+      const val = (recordData as Record<string, unknown>)[k];
+      return val && typeof val === "object" && !Array.isArray(val);
+    });
+    if (objectKeys.length === 1) {
+      return (recordData as Record<string, unknown>)[objectKeys[0]] as Record<string, unknown>;
     }
     return recordData as Record<string, unknown>;
   })();

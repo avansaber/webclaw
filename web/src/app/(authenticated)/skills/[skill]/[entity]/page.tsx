@@ -117,9 +117,14 @@ export default function EntityListPage({
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : error ? (
-        <Card className="border-destructive">
+        <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-destructive">{error instanceof Error ? error.message : "Failed to load data"}</p>
+            <p className="text-sm text-muted-foreground">
+              Could not load {label.toLowerCase()}.
+              {error instanceof Error && error.message && !error.message.includes("Unknown action")
+                ? ` ${error.message}`
+                : " This entity may require additional parameters or is not available."}
+            </p>
           </CardContent>
         </Card>
       ) : items.length === 0 ? (
