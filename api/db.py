@@ -8,12 +8,14 @@ Replaces erpclaw_lib.db — webclaw has zero dependency on any skill's shared li
 """
 import glob
 import os
+import re
 import sqlite3
 import stat
 
 import yaml
 
 SKILLS_DIR = os.path.expanduser("~/clawd/skills")
+_SKILL_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 DEFAULT_WEBCLAW_DB = os.path.expanduser("~/.openclaw/webclaw/webclaw.sqlite")
 
 # Cache: skill_name → db_path (from SKILL.md webclaw.database)
@@ -99,6 +101,8 @@ def get_skill_db(skill_name: str) -> sqlite3.Connection | None:
 
 def _resolve_skill_db_path(skill_name: str) -> str | None:
     """Resolve the database path for a skill from its SKILL.md."""
+    if not _SKILL_NAME_RE.match(skill_name):
+        return None
     if skill_name in _skill_db_cache:
         return _skill_db_cache[skill_name]
 
