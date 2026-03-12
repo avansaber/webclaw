@@ -238,6 +238,11 @@ def _parse_yaml_body(content: str) -> dict:
     if not scripts or not isinstance(scripts, list):
         return {"actions": {}, "entity_groups": []}
 
+    # Handle simple format: scripts is a list of strings (e.g. ["scripts/db_query.py"])
+    # In this case there are no YAML body params — fall through to table/code block parsing
+    if scripts and isinstance(scripts[0], str):
+        return {"actions": {}, "entity_groups": []}
+
     # Collect all action names first for same-skill entity lookup resolution
     all_action_names = []
     for script in scripts:

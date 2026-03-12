@@ -98,14 +98,22 @@ def _read_frontmatter(skill_md_path: str) -> dict:
 
 
 def _singularize(word: str) -> str:
-    """Basic English singularization for entity names."""
-    if word.endswith("ies"):
-        return word[:-3] + "y"
-    if word.endswith("ses"):
-        return word[:-2]
-    if word.endswith("s") and not word.endswith("ss"):
-        return word[:-1]
-    return word
+    """Basic English singularization for entity names.
+
+    Only singularizes the LAST word in compound names (e.g. 'deal-stages' → 'deal-stage').
+    """
+    parts = word.split("-")
+    last = parts[-1]
+    if last.endswith("ies") and len(last) > 3:
+        last = last[:-3] + "y"
+    elif last.endswith("sses"):
+        last = last[:-2]  # addresses → addresse? No — keep as-is for sses
+    elif last.endswith("shes") or last.endswith("ches") or last.endswith("xes") or last.endswith("zes"):
+        last = last[:-2]  # bushes → bush, matches → match, boxes → box
+    elif last.endswith("s") and not last.endswith("ss"):
+        last = last[:-1]  # leases → lease, wells → well, companies handled above
+    parts[-1] = last
+    return "-".join(parts)
 
 
 def _pluralize(word: str) -> str:
@@ -188,10 +196,25 @@ def _infer_entities(parsed: dict) -> dict[str, dict]:
             )
 
     # Filter: only keep entities that have at least a list or create action
-    return {
-        k: v for k, v in entities.items()
-        if "list" in v["actions"] or "create" in v["actions"]
-    }
+    # Remove variant entities that are just filtered views of another entity
+    # (e.g., "expiring_lease" is just list-expiring-leases on "lease")
+    base_entity_keys = set()
+    for k in entities:
+        if "create" in entities[k]["actions"]:
+            base_entity_keys.add(k)
+
+    filtered = {}
+    for k, v in entities.items():
+        # Skip if it looks like a variant of a base entity (has no create action
+        # and its last word matches a base entity)
+        if "create" not in v["actions"]:
+            last_part = k.rsplit("_", 1)[-1]
+            if any(last_part == base.rsplit("_", 1)[-1] for base in base_entity_keys):
+                continue
+        if "list" in v["actions"] or "create" in v["actions"]:
+            filtered[k] = v
+
+    return filtered
 
 
 def _build_fields(entity_key: str, entity_data: dict) -> dict[str, dict]:
