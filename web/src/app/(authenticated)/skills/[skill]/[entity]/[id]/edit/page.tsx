@@ -53,9 +53,24 @@ export default function EntityEditPage({
     { enabled: !!getAction, entitySlug: slug },
   );
 
-  const record = recordData
-    ? ((recordData.data || recordData.record || recordData) as Record<string, unknown>)
-    : null;
+  // Extract record: handle {data:…}, {record:…}, or entity-name-keyed responses like {company:…}
+  const record = (() => {
+    if (!recordData) return null;
+    if (recordData.data && typeof recordData.data === "object" && !Array.isArray(recordData.data)) {
+      return recordData.data as Record<string, unknown>;
+    }
+    if (recordData.record && typeof recordData.record === "object" && !Array.isArray(recordData.record)) {
+      return recordData.record as Record<string, unknown>;
+    }
+    const dataKeys = Object.keys(recordData).filter(k => !k.startsWith("_") && k !== "status" && k !== "request_id");
+    if (dataKeys.length === 1) {
+      const val = (recordData as Record<string, unknown>)[dataKeys[0]];
+      if (val && typeof val === "object" && !Array.isArray(val)) {
+        return val as Record<string, unknown>;
+      }
+    }
+    return recordData as Record<string, unknown>;
+  })();
 
   // Find update action
   const entityName = singularize(slug).replace(/-/g, "_");

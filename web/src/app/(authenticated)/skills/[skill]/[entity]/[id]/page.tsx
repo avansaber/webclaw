@@ -249,10 +249,29 @@ export default function EntityDetailPage({
     { enabled: !!getAction, entitySlug: slug },
   );
 
-  // Extract record from response
-  const record = recordData
-    ? ((recordData.data || recordData.record || recordData) as Record<string, unknown>)
-    : null;
+  // Extract record from response.
+  // Skills return data in varying shapes:
+  //   ERPClaw: {data: {...}} or {record: {...}}
+  //   Standalone (OilCRM): {company: {...}}, {lease: {...}} — keyed by entity name
+  const record = (() => {
+    if (!recordData) return null;
+    // Standard keys
+    if (recordData.data && typeof recordData.data === "object" && !Array.isArray(recordData.data)) {
+      return recordData.data as Record<string, unknown>;
+    }
+    if (recordData.record && typeof recordData.record === "object" && !Array.isArray(recordData.record)) {
+      return recordData.record as Record<string, unknown>;
+    }
+    // Entity-name key: if response has a single non-meta key containing an object, unwrap it
+    const dataKeys = Object.keys(recordData).filter(k => !k.startsWith("_") && k !== "status" && k !== "request_id");
+    if (dataKeys.length === 1) {
+      const val = (recordData as Record<string, unknown>)[dataKeys[0]];
+      if (val && typeof val === "object" && !Array.isArray(val)) {
+        return val as Record<string, unknown>;
+      }
+    }
+    return recordData as Record<string, unknown>;
+  })();
   const loading = actionsLoading || recordLoading;
 
   // Determine available actions for this record
@@ -360,7 +379,14 @@ export default function EntityDetailPage({
 
   // Section-based layout (from UI.yaml) vs auto-layout
   const sections = entityDef?.views?.detail?.sections;
-  const useSections = sections && sections.length > 0;
+  // Only use sections if they actually match record fields — if auto-generated
+  // field names don't match the actual data (e.g. CLI param "type" vs DB column
+  // "company_type"), fall back to auto-layout which shows all fields.
+  const recordKeys = new Set(Object.keys(record));
+  const sectionFieldCount = sections
+    ? sections.reduce((n, s) => n + (s.fields || []).filter((f: string) => recordKeys.has(f)).length, 0)
+    : 0;
+  const useSections = sections && sections.length > 0 && sectionFieldCount > 0;
 
   // Auto-layout: group fields for display
   const hiddenFields = new Set(["id", "created_at", "updated_at", "company_id", "_ui"]);
