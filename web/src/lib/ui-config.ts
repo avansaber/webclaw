@@ -1,5 +1,6 @@
 // ── UI Config Fetcher ────────────────────────────────────────────────────────
 // Client-side hook to load and cache parsed UI.yaml for a skill.
+// Falls back to auto-generated config when UI.yaml is missing.
 
 import { useState, useEffect } from "react";
 import type { UIConfig } from "./ui-yaml-types";
@@ -36,9 +37,12 @@ export async function fetchUIConfig(skill: string): Promise<UIConfig | null> {
 export function useUIConfig(skill: string) {
   const [config, setConfig] = useState<UIConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setGenerating(false);
+
     // Check sync cache first
     const cached = cache.get(skill);
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
@@ -46,13 +50,19 @@ export function useUIConfig(skill: string) {
       setLoading(false);
       return;
     }
+
+    // Show "generating" state after a short delay (indicates auto-generation)
+    const genTimer = setTimeout(() => setGenerating(true), 500);
+
     fetchUIConfig(skill).then((c) => {
+      clearTimeout(genTimer);
       setConfig(c);
       setLoading(false);
+      setGenerating(false);
     });
   }, [skill]);
 
-  return { config, loading };
+  return { config, loading, generating };
 }
 
 // Invalidate cache for a skill (called after admin actions)

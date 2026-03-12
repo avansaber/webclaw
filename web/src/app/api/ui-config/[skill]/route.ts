@@ -16,6 +16,9 @@ function getSkillsDir(): string {
   return prodDir;
 }
 
+// Backend API URL (FastAPI on same server)
+const API_URL = process.env.API_URL || "http://127.0.0.1:8001";
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ skill: string }> }
@@ -39,22 +42,50 @@ export async function GET(
     }
   }
 
-  if (!fs.existsSync(yamlPath)) {
-    return NextResponse.json({ error: "UI.yaml not found", skill }, { status: 404 });
+  // Path 1: Hand-written UI.yaml exists — serve it directly
+  if (fs.existsSync(yamlPath)) {
+    try {
+      const content = fs.readFileSync(yamlPath, "utf-8");
+      const parsed = yaml.load(content);
+      return NextResponse.json(parsed, {
+        headers: {
+          "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
+        },
+      });
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to parse UI.yaml" },
+        { status: 500 }
+      );
+    }
   }
 
+  // Path 2: No UI.yaml — ask backend to auto-generate from SKILL.md
   try {
-    const content = fs.readFileSync(yamlPath, "utf-8");
-    const parsed = yaml.load(content);
-    return NextResponse.json(parsed, {
+    const res = await fetch(`${API_URL}/api/v1/schema/ui-config/${skill}`, {
+      headers: { "Accept": "application/json" },
+      // Short timeout — generation should be fast (SKILL.md parsing + inference)
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: body.error || `UI generation failed (${res.status})`, generated: false },
+        { status: res.status }
+      );
+    }
+
+    const config = await res.json();
+    return NextResponse.json(config, {
       headers: {
-        "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=600",
       },
     });
   } catch (e) {
     return NextResponse.json(
-      { error: "Failed to parse UI.yaml", detail: String(e) },
-      { status: 500 }
+      { error: "Could not generate UI config", skill },
+      { status: 404 }
     );
   }
 }

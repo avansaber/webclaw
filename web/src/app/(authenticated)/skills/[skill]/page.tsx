@@ -124,7 +124,7 @@ export default function SkillDashboardPage({
 }) {
   const { skill } = use(params);
   const router = useRouter();
-  const { config: uiConfig, loading: uiLoading } = useUIConfig(skill);
+  const { config: uiConfig, loading: uiLoading, generating } = useUIConfig(skill);
   const displayName = skillDisplayName(skill);
   const { data: skillsList } = useSkills();
   const skillMeta = skillsList?.find((s) => s.name === skill) ?? null;
@@ -225,16 +225,21 @@ export default function SkillDashboardPage({
     if (skill === "webclaw") router.replace("/dashboard");
   }, [skill, router]);
 
-  // Loading state
+  // Loading state — show "generating" message if auto-generating from SKILL.md
   if (uiLoading || skill === "webclaw") {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        {generating && (
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Building {displayName} interface...
+          </p>
+        )}
       </div>
     );
   }
 
-  // No UI.yaml: redirect to action runner
+  // No UI.yaml and auto-generation failed: fall back to action runner
   if (!uiConfig) {
     return (
       <div className="p-6 space-y-4">
@@ -247,7 +252,7 @@ export default function SkillDashboardPage({
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground mb-4">
-              This skill does not have a UI configuration. Use the action runner to execute commands.
+              Could not generate a UI for this skill. Use the action runner to execute commands directly.
             </p>
             <Button onClick={() => router.push(getActionRunnerUrl(skill))}>
               Open Action Runner <ArrowRight className="h-4 w-4 ml-2" />

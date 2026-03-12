@@ -1,15 +1,20 @@
 """Skill routes — schema discovery and action execution."""
 import glob
 import os
+import re
 
 import yaml
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+# Skill names: lowercase alphanumeric + hyphens only (path traversal defense)
+_SKILL_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
 from .executor import SKILLS_DIR, MODULES_DIR, execute_skill
 from .skillmd_parser import get_cached_params, get_skill_actions
 from .action_prober import probe_action_params
 from .schema_introspector import introspect_child_tables
+from .ui_generator import generate_ui_config
 from events import emit_data_change
 from adaptive.usage_tracker import track_action
 from models import sanitize_skill_params
@@ -60,6 +65,15 @@ def _inject_company_id(skill: str, action: str, params: dict) -> dict:
 router = APIRouter(tags=["skills"])
 
 
+def _validate_skill_name(skill: str) -> JSONResponse | None:
+    """Return a 400 error response if skill name is invalid, else None."""
+    if not _SKILL_NAME_RE.match(skill):
+        return JSONResponse(
+            {"status": "error", "message": "Invalid skill name"}, status_code=400
+        )
+    return None
+
+
 @router.get("/api/v1/schema/actions/{skill}")
 async def list_actions(skill: str):
     """Discover available actions for a skill.
@@ -69,6 +83,8 @@ async def list_actions(skill: str):
     2. Subprocess probe: parse action names from error/suggestion text
     3. YAML frontmatter: read action names from SKILL.md scripts[].actions[]
     """
+    if err := _validate_skill_name(skill):
+        return err
     result = await execute_skill(skill, "__discover__", {})
     actions = result.get("available_actions") or result.get("available")
     if actions:
@@ -103,6 +119,8 @@ async def get_skill_params(skill: str):
       2. SKILL.md code block example parsing (e.g. payroll-style)
       3. Deep probe: run each action without args, parse error for required params
     """
+    if err := _validate_skill_name(skill):
+        return err
     skill_md = os.path.join(SKILLS_DIR, skill, "SKILL.md")
     parsed = get_cached_params(skill, skill_md)
 
@@ -146,6 +164,8 @@ async def get_child_tables(skill: str):
     Used by the frontend to auto-render repeatable row sections for child
     tables (items, details, etc.) without requiring manual UI.yaml config.
     """
+    if err := _validate_skill_name(skill):
+        return err
     child_tables = introspect_child_tables(skill)
     if not child_tables:
         return JSONResponse(
@@ -155,6 +175,46 @@ async def get_child_tables(skill: str):
     return JSONResponse(
         {"status": "ok", "skill": skill, "child_tables": child_tables},
         headers={"Cache-Control": "public, max-age=600"},
+    )
+
+
+@router.get("/api/v1/schema/ui-config/{skill}")
+async def get_ui_config(skill: str):
+    """Return UIConfig for a skill.
+
+    Priority:
+      1. Hand-written UI.yaml (if exists) — parsed and returned as JSON
+      2. Auto-generated from SKILL.md metadata (cached to disk)
+    """
+    if err := _validate_skill_name(skill):
+        return err
+    # Try UI.yaml first
+    for base_dir in [SKILLS_DIR, MODULES_DIR]:
+        ui_path = os.path.join(base_dir, skill, "UI.yaml")
+        if os.path.isfile(ui_path):
+            try:
+                with open(ui_path) as f:
+                    config = yaml.safe_load(f.read())
+                return JSONResponse(
+                    config,
+                    headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=300"},
+                )
+            except Exception:
+                return JSONResponse(
+                    {"error": "Failed to parse UI.yaml"}, status_code=500
+                )
+
+    # Auto-generate from SKILL.md
+    config = generate_ui_config(skill)
+    if not config:
+        return JSONResponse(
+            {"error": f"No UI.yaml or SKILL.md found for '{skill}'"},
+            status_code=404,
+        )
+
+    return JSONResponse(
+        config,
+        headers={"Cache-Control": "public, max-age=300, stale-while-revalidate=600"},
     )
 
 
@@ -184,14 +244,13 @@ async def list_skills():
         skill_name = os.path.basename(skill_dir)
         meta = {"name": skill_name}
 
-        # Check if this skill has a UI.yaml (web-renderable)
-        ui_yaml_exists = False
-        for base_dir in [SKILLS_DIR, MODULES_DIR]:
-            ui_path = os.path.join(base_dir, skill_name, "UI.yaml")
-            if os.path.isfile(ui_path):
-                ui_yaml_exists = True
-                break
-        meta["has_ui"] = ui_yaml_exists
+        # All skills with a SKILL.md are web-renderable (UI auto-generates if no UI.yaml)
+        meta["has_ui"] = True
+        # Flag whether hand-written UI.yaml exists
+        meta["has_ui_yaml"] = any(
+            os.path.isfile(os.path.join(d, skill_name, "UI.yaml"))
+            for d in [SKILLS_DIR, MODULES_DIR]
+        )
 
         try:
             with open(skill_md_path, "r") as f:
