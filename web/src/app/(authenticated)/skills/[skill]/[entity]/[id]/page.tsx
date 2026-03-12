@@ -286,18 +286,21 @@ export default function EntityDetailPage({
 
   // Determine available actions for this record
   const status = record?.status as string | undefined;
-  const detailViewActions = entityDef?.views?.detail?.actions || [];
-  const availableActions = detailViewActions.filter((a) => {
-    if (a.requires_status && status && a.requires_status !== status) return false;
-    return allActions.includes(a.action);
-  });
-
   // Also offer generic actions based on available actions list
   const genericActions: { action: string; label: string; icon: React.ReactNode; variant: "default" | "outline" | "destructive" }[] = [];
   const entityName = singularize(slug).replace(/-/g, "_");
-  if (allActions.includes(`update-${entityName}`) && (!status || status === "draft")) {
+  const hasGenericEdit = allActions.includes(`update-${entityName}`) && (!status || status === "draft");
+  if (hasGenericEdit) {
     genericActions.push({ action: "edit", label: "Edit", icon: <Pencil className="h-3.5 w-3.5" />, variant: "outline" });
   }
+
+  const detailViewActions = entityDef?.views?.detail?.actions || [];
+  const availableActions = detailViewActions.filter((a) => {
+    if (a.requires_status && status && a.requires_status !== status) return false;
+    // Skip update-* actions if generic Edit button is already shown (avoids duplicate)
+    if (hasGenericEdit && a.action.startsWith("update-")) return false;
+    return allActions.includes(a.action);
+  });
   if (allActions.includes(`submit-${entityName}`) && status === "draft") {
     genericActions.push({ action: `submit-${entityName}`, label: "Submit", icon: <Send className="h-3.5 w-3.5" />, variant: "default" });
   }
