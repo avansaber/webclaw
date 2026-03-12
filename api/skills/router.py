@@ -25,8 +25,16 @@ _default_company_cache: dict[str, str | None] = {}
 
 
 def _inject_company_id(skill: str, action: str, params: dict) -> dict:
-    """Auto-inject company-id if not present and the skill's DB has a company table."""
+    """Auto-inject company-id if not present and the skill uses erpclaw's shared DB.
+
+    Only injects for erpclaw core and its modules (which share a single company table).
+    Standalone skills (oilcrm, etc.) manage their own company context.
+    """
     if "company-id" in params or "company_id" in params:
+        return params
+
+    # Only inject for erpclaw-family skills (share the erpclaw DB)
+    if not skill.startswith("erpclaw"):
         return params
 
     # Skip injection for actions that don't accept --company-id
