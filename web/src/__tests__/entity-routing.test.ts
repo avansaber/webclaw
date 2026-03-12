@@ -144,17 +144,18 @@ describe("entityIdParam", () => {
   it("singularizes and appends -id", () => {
     expect(entityIdParam("properties")).toBe("property-id");
     expect(entityIdParam("work-orders")).toBe("work-order-id");
-    // "leases" → ses$ matches → "lea" + "-id" = "lea-id" (known singularization quirk)
-    expect(entityIdParam("leases")).toBe("lea-id");
+    expect(entityIdParam("leases")).toBe("lease-id");
     expect(entityIdParam("entries")).toBe("entry-id");
     expect(entityIdParam("customers")).toBe("customer-id");
+    expect(entityIdParam("businesses")).toBe("business-id");
+    expect(entityIdParam("deal-stages")).toBe("deal-stage-id");
   });
 });
 
 describe("buildIdQuery", () => {
   it("includes both id and entity-specific param", () => {
     expect(buildIdQuery("properties", "P001")).toBe("id=P001&property-id=P001");
-    expect(buildIdQuery("leases", "L001")).toBe("id=L001&lea-id=L001");
+    expect(buildIdQuery("leases", "L001")).toBe("id=L001&lease-id=L001");
   });
 
   it("encodes special characters", () => {

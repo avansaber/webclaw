@@ -36,6 +36,7 @@ import {
   getSkillDashboardUrl,
   listActionFromSlug,
   buildIdPayload,
+  singularize,
 } from "@/lib/entity-routing";
 
 function formatFieldLabel(key: string): string {
@@ -226,7 +227,7 @@ export default function EntityDetailPage({
   const entityKey = entityKeyFromSlug(slug, uiConfig);
   const entityDef = entityKey && uiConfig?.entities?.[entityKey] ? uiConfig.entities[entityKey] : undefined;
   const label = entityLabel(slug, uiConfig);
-  const singularLabel = label.replace(/s$/, "").replace(/ies$/, "y");
+  const singularLabel = singularize(label.toLowerCase()).split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
   const [confirmAction, setConfirmAction] = useState<{ action: string; label: string } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -264,7 +265,7 @@ export default function EntityDetailPage({
 
   // Also offer generic actions based on available actions list
   const genericActions: { action: string; label: string; icon: React.ReactNode; variant: "default" | "outline" | "destructive" }[] = [];
-  const entityName = slug.replace(/-/g, "_").replace(/s$/, "").replace(/ie$/, "y");
+  const entityName = singularize(slug).replace(/-/g, "_");
   if (allActions.includes(`update-${entityName}`) && status === "draft") {
     genericActions.push({ action: "edit", label: "Edit", icon: <Pencil className="h-3.5 w-3.5" />, variant: "outline" });
   }

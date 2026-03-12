@@ -14,6 +14,33 @@
 
 import type { UIConfig, ActionMapEntry } from "./ui-yaml-types";
 
+// ── Singularization ─────────────────────────────────────────────────────────
+
+/**
+ * Singularize a kebab-case plural word.
+ * Only singularizes the LAST segment: "deal-stages" → "deal-stage"
+ */
+export function singularize(word: string): string {
+  const parts = word.split("-");
+  let last = parts[parts.length - 1];
+  if (last.endsWith("ies") && last.length > 3) {
+    last = last.slice(0, -3) + "y";
+  } else if (last.endsWith("sses")) {
+    last = last.slice(0, -2);
+  } else if (
+    last.endsWith("shes") ||
+    last.endsWith("ches") ||
+    last.endsWith("xes") ||
+    last.endsWith("zes")
+  ) {
+    last = last.slice(0, -2);
+  } else if (last.endsWith("s") && !last.endsWith("ss")) {
+    last = last.slice(0, -1);
+  }
+  parts[parts.length - 1] = last;
+  return parts.join("-");
+}
+
 // ── Slug ↔ Action mapping ────────────────────────────────────────────────────
 
 /** list-properties → properties */
@@ -29,10 +56,7 @@ export function listActionFromSlug(slug: string): string {
 /** list-properties → add-property (singular) */
 export function deriveAddAction(listAction: string, availableActions?: string[]): string | null {
   const plural = listAction.replace(/^list-/, "");
-  const singular = plural
-    .replace(/ies$/, "y")
-    .replace(/ses$/, "s")
-    .replace(/s$/, "");
+  const singular = singularize(plural);
   const addCandidate = `add-${singular}`;
   const createCandidate = `create-${singular}`;
   if (availableActions) {
@@ -46,10 +70,7 @@ export function deriveAddAction(listAction: string, availableActions?: string[])
 /** list-properties → get-property (singular) */
 export function deriveGetAction(listAction: string, availableActions?: string[]): string | null {
   const plural = listAction.replace(/^list-/, "");
-  const singular = plural
-    .replace(/ies$/, "y")
-    .replace(/ses$/, "s")
-    .replace(/s$/, "");
+  const singular = singularize(plural);
   const getCandidate = `get-${singular}`;
   if (availableActions) {
     return availableActions.includes(getCandidate) ? getCandidate : null;
@@ -109,11 +130,7 @@ export function entityLabel(slug: string, uiConfig: UIConfig | null): string {
  * "properties" → "property-id", "work-orders" → "work-order-id"
  */
 export function entityIdParam(slug: string): string {
-  const singular = slug
-    .replace(/ies$/, "y")
-    .replace(/ses$/, "s")
-    .replace(/s$/, "");
-  return `${singular}-id`;
+  return `${singularize(slug)}-id`;
 }
 
 /**

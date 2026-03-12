@@ -19,6 +19,7 @@ import {
   getEntityDetailUrl,
   listActionFromSlug,
   entityIdParam,
+  singularize,
 } from "@/lib/entity-routing";
 
 export default function EntityEditPage({
@@ -35,7 +36,7 @@ export default function EntityEditPage({
   const listAction = listActionFromSlug(slug);
   const entityKey = entityKeyFromSlug(slug, uiConfig);
   const label = entityLabel(slug, uiConfig);
-  const singularLabel = label.replace(/s$/, "").replace(/ies$/, "y");
+  const singularLabel = singularize(label.toLowerCase()).split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   const decodedId = decodeURIComponent(id);
 
   // Discover actions via React Query
@@ -57,7 +58,7 @@ export default function EntityEditPage({
     : null;
 
   // Find update action
-  const entityName = slug.replace(/-/g, "_").replace(/s$/, "").replace(/ie$/, "y");
+  const entityName = singularize(slug).replace(/-/g, "_");
   const updateAction = (() => {
     if (uiConfig && entityKey) {
       for (const [act, entry] of Object.entries(uiConfig.action_map || {})) {
